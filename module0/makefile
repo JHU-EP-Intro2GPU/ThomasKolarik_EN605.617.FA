@@ -1,0 +1,2 @@
+generate:
+	nvcc hello-world.cu -o helloworld
