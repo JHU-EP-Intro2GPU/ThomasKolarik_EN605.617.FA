@@ -134,5 +134,9 @@ int main(int argc, char** argv)
     std::cout << "Mod: " << std::endl;
     printArray(c, numBlocks, blockSize);
     
+    cudaFree(gpu_a);
+    cudaFree(gpu_b);
+    cudaFree(gpu_c);
+    
     return 0;
 }
