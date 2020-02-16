@@ -38,7 +38,7 @@ void printArray(const int * const arr, const int xSize, const int ySize)
     {
         for(size_t j = 0; j < xSize; ++j)
         {
-            std::cout << arr[i * xSize + j];
+            std::cout << arr[i * xSize + j] << " ";
         }
         std::cout << '\n';
     }
@@ -48,29 +48,38 @@ void printArray(const int * const arr, const int xSize, const int ySize)
 
 int main(int argc, char** argv)
 {
-	// read command line arguments
-	int totalThreads = (1 << 20);
-	int blockSize = 256;
-	
-	if (argc >= 2) {
-		totalThreads = atoi(argv[1]);
-	}
-	if (argc >= 3) {
-		blockSize = atoi(argv[2]);
-	}
+    // read command line arguments
+    int totalThreads = (1 << 20);
+    int blockSize = 256;
+    
+    if (argc >= 2) {
+        totalThreads = atoi(argv[1]);
+    }
+    if (argc >= 3) {
+        blockSize = atoi(argv[2]);
+    }
+    
 
-	int numBlocks = totalThreads/blockSize;
+    int numBlocks = totalThreads/blockSize;
 
-	// validate command line arguments
-	if (totalThreads % blockSize != 0) {
-		++numBlocks;
-		totalThreads = numBlocks*blockSize;
-		
-		printf("Warning: Total thread count is not evenly divisible by the block size\n");
-		printf("The total number of threads will be rounded up to %d\n", totalThreads);
-	}
+    // validate command line arguments
+    if (totalThreads % blockSize != 0) {
+        ++numBlocks;
+        totalThreads = numBlocks*blockSize;
+        
+        printf("Warning: Total thread count is not evenly divisible by the block size\n");
+        printf("The total number of threads will be rounded up to %d\n", totalThreads);
+    }
     
     int a[totalThreads], b[totalThreads], c[totalThreads];
+    
+    int *gpu_a, *gpu_b, *gpu_c;
+
+    cudaMalloc((void**)&gpu_a, totalThreads * sizeof(int));
+
+    cudaMalloc((void**)&gpu_b, totalThreads * sizeof(int));
+
+    cudaMalloc((void**)&gpu_c, totalThreads * sizeof(int));
     
     // Create a random generate that will generate random numbers from 0 to 4.
     // Use a set seed so output is deterministic
@@ -84,23 +93,35 @@ int main(int argc, char** argv)
         b[i] = dist(gen);
     }
     
+    cudaMemcpy(dev_a, a, N * sizeof(int), cudaMemcpyHostToDevice);
+
+    cudaMemcpy(dev_b, b, N * sizeof(int), cudaMemcpyHostToDevice);
+    
     // Add all of the numbers c[i] = a[i] + b[i];
-    add<<<numBlocks, blockSize>>>(a,b,c);
+    add<<<numBlocks, blockSize>>>(gpu_a,gpu_b,gpu_c);
+    
+    cudaMemcpy(c, gpu_c, N*sizeof(int), cudaMemcpyDeviceToHost);
     
     printArray(c, numBlocks, blockSize);
     
     // Subtract all of the numbers c[i] = a[i] - b[i];
-    subtract<<<numBlocks, blockSize>>>(a,b,c);
+    subtract<<<numBlocks, blockSize>>>(gpu_a,gpu_b,gpu_c);
+    
+    cudaMemcpy(c, gpu_c, N*sizeof(int), cudaMemcpyDeviceToHost);
 
     printArray(c, numBlocks, blockSize);
     
     // Multiply all of the numbers c[i] = a[i] * b[i];
-    mult<<<numBlocks, blockSize>>>(a,b,c);
+    mult<<<numBlocks, blockSize>>>(gpu_a,gpu_b,gpu_c);
+    
+    cudaMemcpy(c, gpu_c, N*sizeof(int), cudaMemcpyDeviceToHost);
 
     printArray(c, numBlocks, blockSize);
     
     // Mod all of the numbers c[i] = a[i] % b[i];
-    mod<<<numBlocks, blockSize>>>(a,b,c);
+    mod<<<numBlocks, blockSize>>>(gpu_a,gpu_b,gpu_c);
+    
+    cudaMemcpy(c, gpu_c, N*sizeof(int), cudaMemcpyDeviceToHost);
 
     printArray(c, numBlocks, blockSize);
     
