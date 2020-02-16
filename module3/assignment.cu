@@ -102,6 +102,7 @@ int main(int argc, char** argv)
     
     cudaMemcpy(c, gpu_c, totalThreads*sizeof(int), cudaMemcpyDeviceToHost);
     
+    std::cout << "Add: " << std::endl;
     printArray(c, numBlocks, blockSize);
     
     // Subtract all of the numbers c[i] = a[i] - b[i];
@@ -109,6 +110,7 @@ int main(int argc, char** argv)
     
     cudaMemcpy(c, gpu_c, totalThreads*sizeof(int), cudaMemcpyDeviceToHost);
 
+    std::cout << "Sub: " << std::endl;
     printArray(c, numBlocks, blockSize);
     
     // Multiply all of the numbers c[i] = a[i] * b[i];
@@ -116,13 +118,15 @@ int main(int argc, char** argv)
     
     cudaMemcpy(c, gpu_c, totalThreads*sizeof(int), cudaMemcpyDeviceToHost);
 
+    std::cout << "Mult: " << std::endl;
     printArray(c, numBlocks, blockSize);
     
     // Mod all of the numbers c[i] = a[i] % b[i];
     mod<<<numBlocks, blockSize>>>(gpu_a,gpu_b,gpu_c);
     
     cudaMemcpy(c, gpu_c, totalThreads*sizeof(int), cudaMemcpyDeviceToHost);
-
+    
+    std::cout << "Mod: " << std::endl;
     printArray(c, numBlocks, blockSize);
     
     return 0;
