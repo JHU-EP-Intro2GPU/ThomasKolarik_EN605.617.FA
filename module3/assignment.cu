@@ -34,11 +34,11 @@ __global__ void mod(int * a, int * b, int * c)
 
 void printArray(const int * const arr, const int xSize, const int ySize)
 {
-    for (size_t i = 0; i < ySize; ++i)
+    for (size_t i = 0; i < xSize; ++i)
     {
-        for(size_t j = 0; j < xSize; ++j)
+        for(size_t j = 0; j < ySize; ++j)
         {
-            std::cout << arr[i * xSize + j] << " ";
+            std::cout << arr[i * ySize + j] << " ";
         }
         std::cout << '\n';
     }
