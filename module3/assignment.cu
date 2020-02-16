@@ -93,6 +93,11 @@ int main(int argc, char** argv)
         b[i] = dist(gen);
     }
     
+    std::cout << "A:" << std::endl;
+    printArray(a, numBlocks, blockSize);
+    std::cout << "B:" << std::endl;
+    printArray(b, numBlocks, blockSize);
+    
     cudaMemcpy(gpu_a, a, totalThreads * sizeof(int), cudaMemcpyHostToDevice);
 
     cudaMemcpy(gpu_b, b, totalThreads * sizeof(int), cudaMemcpyHostToDevice);
