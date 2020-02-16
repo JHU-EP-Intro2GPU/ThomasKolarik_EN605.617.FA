@@ -49,7 +49,7 @@ void printArray(const int * const arr, const int xSize, const int ySize)
 int main(int argc, char** argv)
 {
     // read command line arguments
-    int totalThreads = (1 << 20);
+    int totalThreads = 256;
     int blockSize = 256;
     
     if (argc >= 2) {
