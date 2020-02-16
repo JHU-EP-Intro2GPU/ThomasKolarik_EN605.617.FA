@@ -93,35 +93,35 @@ int main(int argc, char** argv)
         b[i] = dist(gen);
     }
     
-    cudaMemcpy(dev_a, a, N * sizeof(int), cudaMemcpyHostToDevice);
+    cudaMemcpy(gpu_a, a, totalThreads * sizeof(int), cudaMemcpyHostToDevice);
 
-    cudaMemcpy(dev_b, b, N * sizeof(int), cudaMemcpyHostToDevice);
+    cudaMemcpy(gpu_b, b, totalThreads * sizeof(int), cudaMemcpyHostToDevice);
     
     // Add all of the numbers c[i] = a[i] + b[i];
     add<<<numBlocks, blockSize>>>(gpu_a,gpu_b,gpu_c);
     
-    cudaMemcpy(c, gpu_c, N*sizeof(int), cudaMemcpyDeviceToHost);
+    cudaMemcpy(c, gpu_c, totalThreads*sizeof(int), cudaMemcpyDeviceToHost);
     
     printArray(c, numBlocks, blockSize);
     
     // Subtract all of the numbers c[i] = a[i] - b[i];
     subtract<<<numBlocks, blockSize>>>(gpu_a,gpu_b,gpu_c);
     
-    cudaMemcpy(c, gpu_c, N*sizeof(int), cudaMemcpyDeviceToHost);
+    cudaMemcpy(c, gpu_c, totalThreads*sizeof(int), cudaMemcpyDeviceToHost);
 
     printArray(c, numBlocks, blockSize);
     
     // Multiply all of the numbers c[i] = a[i] * b[i];
     mult<<<numBlocks, blockSize>>>(gpu_a,gpu_b,gpu_c);
     
-    cudaMemcpy(c, gpu_c, N*sizeof(int), cudaMemcpyDeviceToHost);
+    cudaMemcpy(c, gpu_c, totalThreads*sizeof(int), cudaMemcpyDeviceToHost);
 
     printArray(c, numBlocks, blockSize);
     
     // Mod all of the numbers c[i] = a[i] % b[i];
     mod<<<numBlocks, blockSize>>>(gpu_a,gpu_b,gpu_c);
     
-    cudaMemcpy(c, gpu_c, N*sizeof(int), cudaMemcpyDeviceToHost);
+    cudaMemcpy(c, gpu_c, totalThreads*sizeof(int), cudaMemcpyDeviceToHost);
 
     printArray(c, numBlocks, blockSize);
     
