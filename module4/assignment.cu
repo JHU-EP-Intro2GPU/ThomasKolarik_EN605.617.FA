@@ -4,6 +4,7 @@
 #include <chrono>
 #include <stdio.h>
 
+static const int CYPHER_OFFSET = 3;
 
 __global__ void add(int * a, int * b, int * c)
 {
@@ -33,11 +34,11 @@ __global__ void mod(int * a, int * b, int * c)
     c[thread_idx] = a[thread_idx] % b[thread_idx];
 }
 
-__global__ void caesarCypher(char * textToEncrypt, const offset)
+__global__ void caesarCypher(char * textToEncrypt, const int offset)
 {
     const unsigned int thread_idx = (blockIdx.x * blockDim.x) + threadIdx.x;
     char c;
-    c = textToEncrypt[thread_index] - offset;
+    c = textToEncrypt[thread_idx] - offset;
     
     // This assume the input array is all capital letters
     if (c < 'A')
@@ -48,7 +49,7 @@ __global__ void caesarCypher(char * textToEncrypt, const offset)
     {
         c -= 'Z' - 'A';
     }
-    textToEncrypt[thread_index] = c;
+    textToEncrypt[thread_idx] = c;
 }
 
 void hostAdd(int * a, int * b, int *c, const int size)
@@ -121,16 +122,30 @@ void executeHostTest(const int totalThreads, const int blockSize, const int numB
     }
     
     // Add all of the numbers c[i] = a[i] + b[i];
-    hostAdd(a,b,c);
+    hostAdd(a,b,c, totalThreads);
     
     // Subtract all of the numbers c[i] = a[i] - b[i];
-    hostSub(a,b,c);
+    hostSub(a,b,c, totalThreads);
     
     // Multiply all of the numbers c[i] = a[i] * b[i];
-    hostMult(a,b,c);
+    hostMult(a,b,c, totalThreads);
     
     // Mod all of the numbers c[i] = a[i] % b[i];
-    hostMod(a,b,c);
+    hostMod(a,b,c, totalThreads);
+    
+    // Allocate space for a character array.
+    int minChar = 'A';
+    int maxChar = 'Z';
+    std::uniform_int_distribution<int> charDist(minChar, maxChar);
+    
+    char textToEncrypt[totalThreads];
+    
+    for (int i = 0; i < totalThreads; ++i)
+    {
+        textToEncrypt[i] = charDist(gen);
+    }
+    
+    hostCaesarCypher(textToEncrypt, totalThreads, CYPHER_OFFSET);
 }
 
 void executeGPUTest(const int totalThreads, const int blockSize, const int numBlocks)
@@ -192,15 +207,13 @@ void executeGPUTest(const int totalThreads, const int blockSize, const int numBl
     for (int i = 0; i < totalThreads; ++i)
     {
         textToEncrypt[i] = charDist(gen);
-    }
-    
-    static const int offset = 3;
+    } 
     
     char * gpuTextToEncrypt;
     cudaMalloc((void**)&gpuTextToEncrypt, totalThreads * sizeof(char));
     cudaMemcpy(gpuTextToEncrypt, a, totalThreads * sizeof(char), cudaMemcpyHostToDevice);
     
-    caesarCypher<<<numBlocks, blockSize>>>(gpuTextToEncrypt, offset);
+    caesarCypher<<<numBlocks, blockSize>>>(gpuTextToEncrypt, CYPHER_OFFSET);
     
     cudaMemcpy(textToEncrypt, gpuTextToEncrypt, totalThreads*sizeof(int), cudaMemcpyDeviceToHost);
     
