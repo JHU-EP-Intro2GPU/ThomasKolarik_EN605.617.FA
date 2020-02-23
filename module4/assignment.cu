@@ -264,13 +264,13 @@ int main(int argc, char** argv)
     executeHostTest(totalThreads, blockSize, numBlocks);
     auto endTime = std::chrono::system_clock::now();
     std::chrono::duration<double> totalTime = endTime-startTime;
-    std::cout << "Host execution took: " << totalTime.count() " seconds." << std::endl;
+    std::cout << "Host execution took: " << totalTime.count() << " seconds." << std::endl;
     
     startTime = std::chrono::system_clock::now();
     executeGPUTest(totalThreads, blockSize, numBlocks);
     endTime = std::chrono::system_clock::now();
     totalTime = endTime-startTime;
-    std::cout << "GPU execution took: " << totalTime.count() " seconds." << std::endl;
+    std::cout << "GPU execution took: " << totalTime.count() << " seconds." << std::endl;
     
     return 0;
 }
