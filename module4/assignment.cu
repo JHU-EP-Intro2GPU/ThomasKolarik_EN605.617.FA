@@ -80,7 +80,16 @@ void hostMod(int * a, int * b, int *c, const int size)
 {
     for (int i = 0; i < size; ++i)
     {
-        c[i] = a[i] % b[i];
+        // Protect against divide by 0. 
+        // cuda code catches this error and sets result to 0 by default.
+        if (b[i] == 0)
+        {
+            c[i] = 0;
+        }
+        else
+        {
+            c[i] = a[i] % b[i];
+        }
     }
 }
 
