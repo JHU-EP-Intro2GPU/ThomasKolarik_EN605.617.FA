@@ -43,11 +43,11 @@ __global__ void caesarCypher(char * textToEncrypt, const int offset)
     // This assume the input array is all capital letters
     if (c < 'A')
     {
-        c += 'Z' - 'A';
+        c += 'Z' - 'A' + 1;
     }
     else if (c > 'Z')
     {
-        c -= 'Z' - 'A';
+        c -= 'Z' - 'A' + 1;
     }
     textToEncrypt[thread_idx] = c;
 }
@@ -104,11 +104,11 @@ void hostCaesarCypher(char * textToEncrypt, const int offset, const int size)
         // This assume the input array is all capital letters
         if (c < 'A')
         {
-            c += 'Z' - 'A';
+            c += 'Z' - 'A' + 1;
         }
         else if (c > 'Z')
         {
-            c -= 'Z' - 'A';
+            c -= 'Z' - 'A' + 1;
         }
         textToEncrypt[i] = c;
     }
