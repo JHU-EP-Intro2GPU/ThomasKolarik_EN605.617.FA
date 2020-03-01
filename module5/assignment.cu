@@ -5,7 +5,7 @@
 #include <stdio.h>
 
 // GPU add c[i] = a[i] + b[i]
-__global__ void add(int * a, int * b, int * c)
+__device__ void add(int * a, int * b, int * c)
 {
     const unsigned int thread_idx = (blockIdx.x * blockDim.x) + threadIdx.x;
     
@@ -13,7 +13,7 @@ __global__ void add(int * a, int * b, int * c)
 }
 
 // GPU subtract c[i] = a[i] - b[i]
-__global__ void subtract(int * a, int * b, int * c)
+__device__ void subtract(int * a, int * b, int * c)
 {
     const unsigned int thread_idx = (blockIdx.x * blockDim.x) + threadIdx.x;
     
@@ -21,7 +21,7 @@ __global__ void subtract(int * a, int * b, int * c)
 }
 
 // GPU multiply c[i] = a[i] * b[i]
-__global__ void mult(int * a, int * b, int * c)
+__device__ void mult(int * a, int * b, int * c)
 {
     const unsigned int thread_idx = (blockIdx.x * blockDim.x) + threadIdx.x;
     
@@ -29,7 +29,7 @@ __global__ void mult(int * a, int * b, int * c)
 }
 
 // GPU div c[i] = a[i] / b[i]
-__global__ void div(int *a, int * b, int * c)
+__device__ void div(int *a, int * b, int * c)
 {
     const unsigned int thread_idx = (blockIdx.x * blockDim.x) + threadIdx.x;
     
@@ -37,7 +37,7 @@ __global__ void div(int *a, int * b, int * c)
 }
 
 // GPU mod c[i] = a[i] % b[i]
-__global__ void mod(int * a, int * b, int * c)
+__device__ void mod(int * a, int * b, int * c)
 {
     const unsigned int thread_idx = (blockIdx.x * blockDim.x) + threadIdx.x;
     
@@ -58,7 +58,7 @@ __device__ void copyData(const int * const srcArr,
 	__syncthreads();
 }
 
-__global__ void executeSharedMathOperations(int * a, int * b, int * addDest, int * subDest, int * multDest, int * divDest, int * modDest, int size)
+__global__ void executeSharedMathOperations(int * a, int * b, int * addDest, int * subDest, int * multDest, int * divDest, int * modDest, const int size)
 {
 	const int tid = (blockIdx.x * blockDim.x) + threadIdx.x;
     __shared__ int sharedA[size];
