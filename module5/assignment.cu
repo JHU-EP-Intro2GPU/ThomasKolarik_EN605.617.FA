@@ -46,13 +46,12 @@ __global__ void mod(int * a, int * b, int * c)
 
 // Copies data from one array to another
 __device__ void copyData(const int * const srcArr,
-									u32 * const destArr,
-									const u32 tid,
-									const u32 size,
-									const u32 tid)
+						 int * const destArr,
+						 const int tid,
+						 const int size)
 {
 	// Copy data into temp store
-	for(u32 i = 0; i<num_elements; i++)
+	for(int i = 0; i<size; i++)
 	{
 		destArr[i+tid] = srcArr[i+tid];
 	}
@@ -61,10 +60,10 @@ __device__ void copyData(const int * const srcArr,
 
 __global__ void executeSharedMathOperations(int * a, int * b, int * addDest, int * subDest, int * multDest, int * divDest, int * modDest, int size)
 {
-	const u32 tid = (blockIdx.x * blockDim.x) + threadIdx.x;
-    __shared__ sharedA[size];
-    __shared__ sharedB[size];
-    __shared__ sharedRet[size];
+	const int tid = (blockIdx.x * blockDim.x) + threadIdx.x;
+    __shared__ int sharedA[size];
+    __shared__ int sharedB[size];
+    __shared__ int sharedRet[size];
     
     copyData(a, sharedA, tid, size);
     copyData(b, sharedB, tid, size);
