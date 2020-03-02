@@ -4,6 +4,9 @@
 #include <chrono>
 #include <stdio.h>
 
+__constant__ static const int A_VAL = 1;
+__constant__ static const itn B_VAL = 3;
+
 // Device GPU add c[i] = a[i] + b[i]
 __device__ void add(int * a, int * b, int * c)
 {
@@ -44,6 +47,7 @@ __device__ void mod(int * a, int * b, int * c)
     c[thread_idx] = a[thread_idx] % b[thread_idx];
 }
 
+// Executes all 5 shared math operations
 __global__ void executeSharedMathOperations(int * a, int * b, int * addDest, int * subDest, int * multDest, int * divDest, int * modDest, const int size)
 {
 	const int tid = (blockIdx.x * blockDim.x) + threadIdx.x;
@@ -77,6 +81,7 @@ __global__ void executeSharedMathOperations(int * a, int * b, int * addDest, int
     modDest[tid] = sharedRet[tid];
 }
 
+// Executes all 5 global math operations
 __global__ void executeGlobalMathOperations(int * a, int * b, int * addDest, int * subDest, int * multDest, int * divDest, int * modDest, const int size)
 {
     // Add a to b and store in addDest
@@ -94,6 +99,27 @@ __global__ void executeGlobalMathOperations(int * a, int * b, int * addDest, int
     // Mod a by b and store in modDest
     mod(a, b, modDest);
 }
+
+// Executes all 5 constant math operations
+__global__ void executeConstantMathOperations(int * a, int * b, int * addDest, int * subDest, int * multDest, int * divDest, int * modDest, const int size)
+{    
+	const int tid = (blockIdx.x * blockDim.x) + threadIdx.x;
+    // Add VAL_A to VAL_B and store in addDest
+    addDest[tid] = VAL_A + VAL_B;
+    
+    // Subtract a from b and store in subDest
+    subDest = VAL_A - VAL_B;
+    
+    // Multiply a to b and store in mutlDest
+    multDest = VAL_A * VAL_B;
+    
+    // Divide a by b and store in divDest
+    divDest = VAL_A / VAL_B; // B is chosen to not be 0.
+    
+    // Mod a by b and store in modDest
+    modDest = VAL_A / VAL_B; // B is chosen to not be 0.
+}
+
 
 // Host (Cpu) add c[i] = a[i] + b[i]
 void hostAdd(int * a, int * b, int *c, const int size)
@@ -239,7 +265,7 @@ void executeGlobalTest(const int totalThreads, const int blockSize, const int nu
 }
 
 // Executes each of the shared memory gpu tests by creating local memory, copying it global memory, and then performing
-// all 5 math operations on the data. The data is filled with random numbers that uses the same seed as the CPU tests.
+// all 5 math operations on the data after creating shared memory. The data is filled with random numbers that uses the same seed as the CPU tests.
 void executeSharedTest(const int totalThreads, const int blockSize, const int numBlocks)
 {
     int a[totalThreads], b[totalThreads], add_dest[totalThreads], sub_dest[totalThreads], mult_dest[totalThreads], div_dest[totalThreads], mod_dest[totalThreads];
@@ -271,7 +297,7 @@ void executeSharedTest(const int totalThreads, const int blockSize, const int nu
     
     // The third parameter is the size of the shared memory
     // We multiply by 3 because we need to copy A and B and then also have room for the return in shared memory.
-    executeSharedMathOperations<<<numBlocks, blockSize, 3 * totalThreads>>>(gpu_a,gpu_b,gpu_add_dest,gpu_sub_dest,gpu_mult_dest,gpu_div_dest,gpu_mod_dest, numBlocks * blockSize);
+    executeSharedMathOperations<<<numBlocks, blockSize, 3 * totalThreads * sizeof(int)>>>(gpu_a,gpu_b,gpu_add_dest,gpu_sub_dest,gpu_mult_dest,gpu_div_dest,gpu_mod_dest, totalThreads);
     
     cudaMemcpy(add_dest,  gpu_add_dest,  totalThreads*sizeof(int), cudaMemcpyDeviceToHost);
     cudaMemcpy(sub_dest,  gpu_sub_dest,  totalThreads*sizeof(int), cudaMemcpyDeviceToHost);    
@@ -279,10 +305,43 @@ void executeSharedTest(const int totalThreads, const int blockSize, const int nu
     cudaMemcpy(div_dest,  gpu_div_dest,  totalThreads*sizeof(int), cudaMemcpyDeviceToHost);
     cudaMemcpy(mod_dest,  gpu_mod_dest,  totalThreads*sizeof(int), cudaMemcpyDeviceToHost);
     
-    for (int i = 0; i < totalThreads; ++i)
-    {
-        std::cout << add_dest[i] << std::endl;
-    }
+    cudaFree(gpu_a);
+    cudaFree(gpu_b);
+    cudaFree(gpu_add_dest);
+    cudaFree(gpu_sub_dest);
+    cudaFree(gpu_mult_dest);
+    cudaFree(gpu_div_dest);
+    cudaFree(gpu_mod_dest); 
+}
+
+// Executes each of the consnt memory gpu tests by creating local memory, copying it global memory, and then performing
+// all 5 math operations on the data using constant values. The data is filled with random numbers that uses the same seed as the CPU tests.
+void executeConstantTest(const int totalThreads, const int blockSize, const int numBlocks)
+{
+    int a[totalThreads], b[totalThreads], add_dest[totalThreads], sub_dest[totalThreads], mult_dest[totalThreads], div_dest[totalThreads], mod_dest[totalThreads];
+    
+    int *gpu_a, *gpu_b, *gpu_add_dest, *gpu_sub_dest, *gpu_mult_dest, *gpu_div_dest, *gpu_mod_dest;
+
+    cudaMalloc((void**)&gpu_a,         totalThreads * sizeof(int));
+    cudaMalloc((void**)&gpu_b,         totalThreads * sizeof(int));
+    cudaMalloc((void**)&gpu_add_dest,  totalThreads * sizeof(int));
+    cudaMalloc((void**)&gpu_sub_dest,  totalThreads * sizeof(int));
+    cudaMalloc((void**)&gpu_mult_dest, totalThreads * sizeof(int));
+    cudaMalloc((void**)&gpu_div_dest,  totalThreads * sizeof(int));
+    cudaMalloc((void**)&gpu_mod_dest,  totalThreads * sizeof(int));
+    
+    cudaMemcpy(gpu_a, a, totalThreads * sizeof(int), cudaMemcpyHostToDevice);
+    cudaMemcpy(gpu_b, b, totalThreads * sizeof(int), cudaMemcpyHostToDevice);
+    
+    // The third parameter is the size of the shared memory
+    // We multiply by 3 because we need to copy A and B and then also have room for the return in shared memory.
+    executeConstantMathOperations<<<numBlocks, blockSize>>>(gpu_a,gpu_b,gpu_add_dest,gpu_sub_dest,gpu_mult_dest,gpu_div_dest,gpu_mod_dest, totalThreads);
+    
+    cudaMemcpy(add_dest,  gpu_add_dest,  totalThreads*sizeof(int), cudaMemcpyDeviceToHost);
+    cudaMemcpy(sub_dest,  gpu_sub_dest,  totalThreads*sizeof(int), cudaMemcpyDeviceToHost);    
+    cudaMemcpy(mult_dest, gpu_mult_dest, totalThreads*sizeof(int), cudaMemcpyDeviceToHost);
+    cudaMemcpy(div_dest,  gpu_div_dest,  totalThreads*sizeof(int), cudaMemcpyDeviceToHost);
+    cudaMemcpy(mod_dest,  gpu_mod_dest,  totalThreads*sizeof(int), cudaMemcpyDeviceToHost);
     
     cudaFree(gpu_a);
     cudaFree(gpu_b);
@@ -345,6 +404,12 @@ int main(int argc, char** argv)
     
     startTime = std::chrono::system_clock::now();
     executeSharedTest(totalThreads, blockSize, numBlocks);
+    endTime = std::chrono::system_clock::now();
+    totalTime = endTime-startTime;
+    std::cout << "Shared Memory execution took: " << totalTime.count() << " seconds." << std::endl;
+    
+    startTime = std::chrono::system_clock::now();
+    executeConstantTest(totalThreads, blockSize, numBlocks);
     endTime = std::chrono::system_clock::now();
     totalTime = endTime-startTime;
     std::cout << "Shared Memory execution took: " << totalTime.count() << " seconds." << std::endl;
