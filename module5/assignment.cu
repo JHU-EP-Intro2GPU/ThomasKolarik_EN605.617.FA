@@ -338,8 +338,6 @@ void executeConstantTest(const int totalThreads, const int blockSize, const int 
     cudaMemcpy(div_dest,  gpu_div_dest,  totalThreads*sizeof(int), cudaMemcpyDeviceToHost);
     cudaMemcpy(mod_dest,  gpu_mod_dest,  totalThreads*sizeof(int), cudaMemcpyDeviceToHost);
     
-    cudaFree(gpu_a);
-    cudaFree(gpu_b);
     cudaFree(gpu_add_dest);
     cudaFree(gpu_sub_dest);
     cudaFree(gpu_mult_dest);
