@@ -91,8 +91,6 @@ __global__ void executeSharedMathOperations(int * a, int * b, int * addDest, int
 
 __global__ void executeGlobalMathOperations(int * a, int * b, int * addDest, int * subDest, int * multDest, int * divDest, int * modDest, const int size)
 {
-	const int tid = (blockIdx.x * blockDim.x) + threadIdx.x;
-    
     // Add a to b and store in addDest
     add(a, b, addDest);
     
@@ -290,6 +288,11 @@ void executeSharedTest(const int totalThreads, const int blockSize, const int nu
     cudaMemcpy(mult_dest, gpu_mult_dest, totalThreads*sizeof(int), cudaMemcpyDeviceToHost);
     cudaMemcpy(div_dest, gpu_div_dest,   totalThreads*sizeof(int), cudaMemcpyDeviceToHost);
     cudaMemcpy(mod_dest, gpu_mod_dest,   totalThreads*sizeof(int), cudaMemcpyDeviceToHost);
+    
+    for (int i = 0; i < totalThreads; ++i)
+    {
+        std::cout << add_dest[i] << std::endl;
+    }
     
     cudaFree(gpu_a);
     cudaFree(gpu_b);
