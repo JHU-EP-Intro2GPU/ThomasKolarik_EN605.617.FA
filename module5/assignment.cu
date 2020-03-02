@@ -93,24 +93,24 @@ __global__ void executeGlobalMathOperations(int * a, int * b, int * addDest, int
 {
 	const int tid = (blockIdx.x * blockDim.x) + threadIdx.x;
     
-    // Add sharedA to sharedB and store in addDest
-    addGlobal(sharedA, sharedB, sharedRet);
+    // Add a to b and store in addDest
+    add(a, b, sharedRet);
     copyData(sharedRet, addDest, tid, size);
     
-    // Subtract sharedB from sharedA and store in subDest
-    subGlobal(sharedA, sharedB, sharedRet);
+    // Subtract a from b and store in subDest
+    sub(a, b, sharedRet);
     copyData(sharedRet, subDest, tid, size);
     
-    // Multiply sharedA to sharedB and store in mutlDest
-    multGlobal(sharedA, sharedB, sharedRet);
+    // Multiply a to b and store in mutlDest
+    mult(a, b, sharedRet);
     copyData(sharedRet, multDest, tid, size);
     
-    // Divide sharedA by sharedB and store in divDest
-    divGlobal(sharedA, sharedB, sharedRet);
+    // Divide a by b and store in divDest
+    div(a, b, sharedRet);
     copyData(sharedRet, divDest, tid, size);
     
-    // Mod sharedA by sharedB and store in modDest
-    modGlobal(sharedA, sharedB, sharedRet);
+    // Mod a by b and store in modDest
+    mod(a, b, sharedRet);
     copyData(sharedRet, modDest, tid, size);
 }
 
@@ -261,13 +261,17 @@ void executeGlobalTest(const int totalThreads, const int blockSize, const int nu
 // all 5 math operations on the data. The data is filled with random numbers that uses the same seed as the CPU tests.
 void executeSharedTest(const int totalThreads, const int blockSize, const int numBlocks)
 {
-    int a[totalThreads], b[totalThreads], c[totalThreads];
+    int a[totalThreads], b[totalThreads], add_dest[totalThreads], sub_dest[totalThreads], mult_dest[totalThreads], div_dest[totalThreads], mod_dest[totalThreads];
     
-    int *gpu_a, *gpu_b, *gpu_c;
+    int *gpu_a, *gpu_b, *gpu_add_dest, *gpu_sub_dest, *gpu_mult_dest, *gpu_div_dest, *gpu_mod_dest;
 
-    cudaMalloc((void**)&gpu_a, totalThreads * sizeof(int));
-    cudaMalloc((void**)&gpu_b, totalThreads * sizeof(int));
-    cudaMalloc((void**)&gpu_c, totalThreads * sizeof(int));
+    cudaMalloc((void**)&gpu_a,         totalThreads * sizeof(int));
+    cudaMalloc((void**)&gpu_b,         totalThreads * sizeof(int));
+    cudaMalloc((void**)&gpu_add_dest,  totalThreads * sizeof(int));
+    cudaMalloc((void**)&gpu_sub_dest,  totalThreads * sizeof(int));
+    cudaMalloc((void**)&gpu_mult_dest, totalThreads * sizeof(int));
+    cudaMalloc((void**)&gpu_div_dest,  totalThreads * sizeof(int));
+    cudaMalloc((void**)&gpu_mod_dest,  totalThreads * sizeof(int));
     
     // Create a random generate that will generate random numbers from 0 to 4.
     // Use a set seed so output is deterministic
