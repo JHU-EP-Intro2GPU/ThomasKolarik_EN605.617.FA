@@ -47,11 +47,15 @@ __device__ void mod(int * a, int * b, int * c)
 __global__ void executeSharedMathOperations(int * a, int * b, int * addDest, int * subDest, int * multDest, int * divDest, int * modDest, const int size)
 {
 	const int tid = (blockIdx.x * blockDim.x) + threadIdx.x;
-    extern __shared__ int sharedA[];
-    extern __shared__ int sharedB[];
-    extern __shared__ int sharedRet[];
+    extern __shared__ int sharedMem[];
+    
+    // Use offsets in the shared mem to create arrays.
+    int * sharedA = &sharedMem[0];
+    int * sharedB = &sharedMem[size];
+    int * sharedRet = &sharedMem[2*size];
     
     sharedA[tid] = a[tid];
+    sharedB[tid] = b[tid];
     
     // Add sharedA to sharedB and store in addDest
     add(sharedA, sharedB, sharedRet);
@@ -219,11 +223,11 @@ void executeGlobalTest(const int totalThreads, const int blockSize, const int nu
     
     executeGlobalMathOperations<<<numBlocks, blockSize>>>(gpu_a,gpu_b,gpu_add_dest,gpu_sub_dest,gpu_mult_dest,gpu_div_dest,gpu_mod_dest, numBlocks * blockSize);
     
-    cudaMemcpy(add_dest, gpu_add_dest,   totalThreads*sizeof(int), cudaMemcpyDeviceToHost);
-    cudaMemcpy(sub_dest, gpu_sub_dest,   totalThreads*sizeof(int), cudaMemcpyDeviceToHost);    
-    cudaMemcpy(mult_dest, gpu_mult_dest, totalThreads*sizeof(int), cudaMemcpyDeviceToHost);
-    cudaMemcpy(div_dest, gpu_div_dest,   totalThreads*sizeof(int), cudaMemcpyDeviceToHost);
-    cudaMemcpy(mod_dest, gpu_mod_dest,   totalThreads*sizeof(int), cudaMemcpyDeviceToHost);
+    cudaMemcpy(gpu_add_dest,  add_dest,  totalThreads*sizeof(int), cudaMemcpyDeviceToHost);
+    cudaMemcpy(gpu_sub_dest,  sub_dest,  totalThreads*sizeof(int), cudaMemcpyDeviceToHost);    
+    cudaMemcpy(gpu_mult_dest, mult_dest, totalThreads*sizeof(int), cudaMemcpyDeviceToHost);
+    cudaMemcpy(gpu_div_dest,  div_dest,  totalThreads*sizeof(int), cudaMemcpyDeviceToHost);
+    cudaMemcpy(gpu_mod_dest,  mod_dest,  totalThreads*sizeof(int), cudaMemcpyDeviceToHost);
     
     cudaFree(gpu_a);
     cudaFree(gpu_b);
@@ -265,13 +269,15 @@ void executeSharedTest(const int totalThreads, const int blockSize, const int nu
     cudaMemcpy(gpu_a, a, totalThreads * sizeof(int), cudaMemcpyHostToDevice);
     cudaMemcpy(gpu_b, b, totalThreads * sizeof(int), cudaMemcpyHostToDevice);
     
-    executeSharedMathOperations<<<numBlocks, blockSize>>>(gpu_a,gpu_b,gpu_add_dest,gpu_sub_dest,gpu_mult_dest,gpu_div_dest,gpu_mod_dest, numBlocks * blockSize);
+    // The third parameter is the size of the shared memory
+    // We multiply by 3 because we need to copy A and B and then also have room for the return in shared memory.
+    executeSharedMathOperations<<<numBlocks, blockSize, 3 * totalThreads>>>(gpu_a,gpu_b,gpu_add_dest,gpu_sub_dest,gpu_mult_dest,gpu_div_dest,gpu_mod_dest, numBlocks * blockSize);
     
-    cudaMemcpy(add_dest, gpu_add_dest,   totalThreads*sizeof(int), cudaMemcpyDeviceToHost);
-    cudaMemcpy(sub_dest, gpu_sub_dest,   totalThreads*sizeof(int), cudaMemcpyDeviceToHost);    
-    cudaMemcpy(mult_dest, gpu_mult_dest, totalThreads*sizeof(int), cudaMemcpyDeviceToHost);
-    cudaMemcpy(div_dest, gpu_div_dest,   totalThreads*sizeof(int), cudaMemcpyDeviceToHost);
-    cudaMemcpy(mod_dest, gpu_mod_dest,   totalThreads*sizeof(int), cudaMemcpyDeviceToHost);
+    cudaMemcpy(gpu_add_dest,  add_dest,  totalThreads*sizeof(int), cudaMemcpyDeviceToHost);
+    cudaMemcpy(gpu_sub_dest,  sub_dest,  totalThreads*sizeof(int), cudaMemcpyDeviceToHost);    
+    cudaMemcpy(gpu_mult_dest, mult_dest, totalThreads*sizeof(int), cudaMemcpyDeviceToHost);
+    cudaMemcpy(gpu_div_dest,  div_dest,  totalThreads*sizeof(int), cudaMemcpyDeviceToHost);
+    cudaMemcpy(gpu_mod_dest,  mod_dest,  totalThreads*sizeof(int), cudaMemcpyDeviceToHost);
     
     for (int i = 0; i < totalThreads; ++i)
     {
