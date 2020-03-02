@@ -318,12 +318,10 @@ void executeSharedTest(const int totalThreads, const int blockSize, const int nu
 // all 5 math operations on the data using constant values. The data is filled with random numbers that uses the same seed as the CPU tests.
 void executeConstantTest(const int totalThreads, const int blockSize, const int numBlocks)
 {
-    int a[totalThreads], b[totalThreads], add_dest[totalThreads], sub_dest[totalThreads], mult_dest[totalThreads], div_dest[totalThreads], mod_dest[totalThreads];
+    int add_dest[totalThreads], sub_dest[totalThreads], mult_dest[totalThreads], div_dest[totalThreads], mod_dest[totalThreads];
     
     int *gpu_add_dest, *gpu_sub_dest, *gpu_mult_dest, *gpu_div_dest, *gpu_mod_dest;
 
-    cudaMalloc((void**)&gpu_a,         totalThreads * sizeof(int));
-    cudaMalloc((void**)&gpu_b,         totalThreads * sizeof(int));
     cudaMalloc((void**)&gpu_add_dest,  totalThreads * sizeof(int));
     cudaMalloc((void**)&gpu_sub_dest,  totalThreads * sizeof(int));
     cudaMalloc((void**)&gpu_mult_dest, totalThreads * sizeof(int));
