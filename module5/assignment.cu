@@ -4,8 +4,8 @@
 #include <chrono>
 #include <stdio.h>
 
-__constant__ static const int A_VAL = 1;
-__constant__ static const itn B_VAL = 3;
+__constant__ static const int VAL_A = 1;
+__constant__ static const int VAL_B = 3;
 
 // Device GPU add c[i] = a[i] + b[i]
 __device__ void add(int * a, int * b, int * c)
@@ -108,16 +108,16 @@ __global__ void executeConstantMathOperations(int * a, int * b, int * addDest, i
     addDest[tid] = VAL_A + VAL_B;
     
     // Subtract a from b and store in subDest
-    subDest = VAL_A - VAL_B;
+    subDest[tid] = VAL_A - VAL_B;
     
     // Multiply a to b and store in mutlDest
-    multDest = VAL_A * VAL_B;
+    multDest[tid] = VAL_A * VAL_B;
     
     // Divide a by b and store in divDest
-    divDest = VAL_A / VAL_B; // B is chosen to not be 0.
+    divDest[tid] = VAL_A / VAL_B; // B is chosen to not be 0.
     
     // Mod a by b and store in modDest
-    modDest = VAL_A / VAL_B; // B is chosen to not be 0.
+    modDest[tid] = VAL_A / VAL_B; // B is chosen to not be 0.
 }
 
 
