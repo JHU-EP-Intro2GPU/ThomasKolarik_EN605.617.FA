@@ -412,7 +412,7 @@ int main(int argc, char** argv)
     executeConstantTest(totalThreads, blockSize, numBlocks);
     endTime = std::chrono::system_clock::now();
     totalTime = endTime-startTime;
-    std::cout << "Shared Memory execution took: " << totalTime.count() << " seconds." << std::endl;
+    std::cout << "Constant Memory execution took: " << totalTime.count() << " seconds." << std::endl;
     
     return 0;
 }
