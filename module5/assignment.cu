@@ -4,7 +4,7 @@
 #include <chrono>
 #include <stdio.h>
 
-// GPU add c[i] = a[i] + b[i]
+// Device GPU add c[i] = a[i] + b[i]
 __device__ void add(int * a, int * b, int * c)
 {
     const unsigned int thread_idx = (blockIdx.x * blockDim.x) + threadIdx.x;
@@ -12,7 +12,7 @@ __device__ void add(int * a, int * b, int * c)
     c[thread_idx] = a[thread_idx] + b[thread_idx];
 }
 
-// GPU subtract c[i] = a[i] - b[i]
+// Device GPU subtract c[i] = a[i] - b[i]
 __device__ void subtract(int * a, int * b, int * c)
 {
     const unsigned int thread_idx = (blockIdx.x * blockDim.x) + threadIdx.x;
@@ -20,7 +20,7 @@ __device__ void subtract(int * a, int * b, int * c)
     c[thread_idx] = a[thread_idx] - b[thread_idx];
 }
 
-// GPU multiply c[i] = a[i] * b[i]
+// Device GPU multiply c[i] = a[i] * b[i]
 __device__ void mult(int * a, int * b, int * c)
 {
     const unsigned int thread_idx = (blockIdx.x * blockDim.x) + threadIdx.x;
@@ -28,7 +28,7 @@ __device__ void mult(int * a, int * b, int * c)
     c[thread_idx] = a[thread_idx] * b[thread_idx];
 }
 
-// GPU div c[i] = a[i] / b[i]
+// Device GPU div c[i] = a[i] / b[i]
 __device__ void div(int *a, int * b, int * c)
 {
     const unsigned int thread_idx = (blockIdx.x * blockDim.x) + threadIdx.x;
@@ -36,8 +36,48 @@ __device__ void div(int *a, int * b, int * c)
     c[thread_idx] = a[thread_idx] / b[thread_idx];
 }
 
-// GPU mod c[i] = a[i] % b[i]
+// Device GPU mod c[i] = a[i] % b[i]
 __device__ void mod(int * a, int * b, int * c)
+{
+    const unsigned int thread_idx = (blockIdx.x * blockDim.x) + threadIdx.x;
+    
+    c[thread_idx] = a[thread_idx] % b[thread_idx];
+}
+
+// Global GPU add c[i] = a[i] + b[i]
+__global__ void addGlobal(int * a, int * b, int * c)
+{
+    const unsigned int thread_idx = (blockIdx.x * blockDim.x) + threadIdx.x;
+    
+    c[thread_idx] = a[thread_idx] + b[thread_idx];
+}
+
+// Global GPU subtract c[i] = a[i] - b[i]
+__global__ void subtractGlobal(int * a, int * b, int * c)
+{
+    const unsigned int thread_idx = (blockIdx.x * blockDim.x) + threadIdx.x;
+    
+    c[thread_idx] = a[thread_idx] - b[thread_idx];
+}
+
+// Global GPU multiply c[i] = a[i] * b[i]
+__global__ void multGlobal(int * a, int * b, int * c)
+{
+    const unsigned int thread_idx = (blockIdx.x * blockDim.x) + threadIdx.x;
+    
+    c[thread_idx] = a[thread_idx] * b[thread_idx];
+}
+
+// Global GPU div c[i] = a[i] / b[i]
+__global__ void divGlobal(int *a, int * b, int * c)
+{
+    const unsigned int thread_idx = (blockIdx.x * blockDim.x) + threadIdx.x;
+    
+    c[thread_idx] = a[thread_idx] / b[thread_idx];
+}
+
+// Global GPU mod c[i] = a[i] % b[i]
+__global__ void modGlobal(int * a, int * b, int * c)
 {
     const unsigned int thread_idx = (blockIdx.x * blockDim.x) + threadIdx.x;
     
@@ -61,9 +101,9 @@ __device__ void copyData(const int * const srcArr,
 __global__ void executeSharedMathOperations(int * a, int * b, int * addDest, int * subDest, int * multDest, int * divDest, int * modDest, const int size)
 {
 	const int tid = (blockIdx.x * blockDim.x) + threadIdx.x;
-    __shared__ int sharedA[size];
-    __shared__ int sharedB[size];
-    __shared__ int sharedRet[size];
+    extern __shared__ int sharedA[];
+    extern __shared__ int sharedB[];
+    extern __shared__ int sharedRet[];
     
     copyData(a, sharedA, tid, size);
     copyData(b, sharedB, tid, size);
@@ -73,7 +113,7 @@ __global__ void executeSharedMathOperations(int * a, int * b, int * addDest, int
     copyData(sharedRet, addDest, tid, size);
     
     // Subtract sharedB from sharedA and store in subDest
-    sub(sharedA, sharedB, sharedRet);
+    subtract(sharedA, sharedB, sharedRet);
     copyData(sharedRet, subDest, tid, size);
     
     // Multiply sharedA to sharedB and store in mutlDest
@@ -86,6 +126,37 @@ __global__ void executeSharedMathOperations(int * a, int * b, int * addDest, int
     
     // Mod sharedA by sharedB and store in modDest
     mod(sharedA, sharedB, sharedRet);
+    copyData(sharedRet, modDest, tid, size);
+}
+
+__global__ void executeGlobalMathOperations(int * a, int * b, int * addDest, int * subDest, int * multDest, int * divDest, int * modDest, const int size)
+{
+	const int tid = (blockIdx.x * blockDim.x) + threadIdx.x;
+    __shared__ int sharedA[size];
+    __shared__ int sharedB[size];
+    __shared__ int sharedRet[size];
+    
+    copyData(a, sharedA, tid, size);
+    copyData(b, sharedB, tid, size);
+    
+    // Add sharedA to sharedB and store in addDest
+    addGlobal(sharedA, sharedB, sharedRet);
+    copyData(sharedRet, addDest, tid, size);
+    
+    // Subtract sharedB from sharedA and store in subDest
+    subGlobal(sharedA, sharedB, sharedRet);
+    copyData(sharedRet, subDest, tid, size);
+    
+    // Multiply sharedA to sharedB and store in mutlDest
+    multGlobal(sharedA, sharedB, sharedRet);
+    copyData(sharedRet, multDest, tid, size);
+    
+    // Divide sharedA by sharedB and store in divDest
+    divGlobal(sharedA, sharedB, sharedRet);
+    copyData(sharedRet, divDest, tid, size);
+    
+    // Mod sharedA by sharedB and store in modDest
+    modGlobal(sharedA, sharedB, sharedRet);
     copyData(sharedRet, modDest, tid, size);
 }
 
@@ -215,7 +286,7 @@ void executeGlobalTest(const int totalThreads, const int blockSize, const int nu
     cudaMemcpy(gpu_a, a, totalThreads * sizeof(int), cudaMemcpyHostToDevice);
     cudaMemcpy(gpu_b, b, totalThreads * sizeof(int), cudaMemcpyHostToDevice);
     
-    executeSharedMathOperations<<<numBlocks, blockSize>>>(gpu_a,gpu_b,gpu_add_dest,gpu_sub_dest,gpu_mult_dest,gpu_div_dest,gpu_mod_dest);
+    executeGlobalMathOperations<<<numBlocks, blockSize>>>(gpu_a,gpu_b,gpu_add_dest,gpu_sub_dest,gpu_mult_dest,gpu_div_dest,gpu_mod_dest, numBlocks * blockSize);
     
     cudaMemcpy(add_dest, gpu_add_dest,   totalThreads*sizeof(int), cudaMemcpyDeviceToHost);
     cudaMemcpy(sub_dest, gpu_sub_dest,   totalThreads*sizeof(int), cudaMemcpyDeviceToHost);    
