@@ -1,8 +1,8 @@
 #!/bin/sh
 make
-echo "Testing execution with 256 blocks of size 256"                                                                                                                                                                                      
-./assignment.exe 256 256                                                                                                                                                                                                               
-echo "Testing execution with 4096 blocks of size 4096"                                                                                                                                                                                    
-./assignment.exe 4096 4096
-echo "Testing execution with 65536 blocks of size 65536"                                                                                                                                                                                    
-./assignment.exe 65536 65536
+echo "Testing execution with 32 blocks of size 32"                                                                                                                                                                                      
+./assignment.exe 32 32                                                                                                                                                                                                               
+echo "Testing execution with 128 blocks of size 128"                                                                                                                                                                                    
+./assignment.exe 128 128
+echo "Testing execution with 1024 blocks of size 1024"                                                                                                                                                                                    
+./assignment.exe 1024 1024
