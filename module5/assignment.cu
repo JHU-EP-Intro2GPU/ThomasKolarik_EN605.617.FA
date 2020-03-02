@@ -44,46 +44,6 @@ __device__ void mod(int * a, int * b, int * c)
     c[thread_idx] = a[thread_idx] % b[thread_idx];
 }
 
-// Global GPU add c[i] = a[i] + b[i]
-__global__ void addGlobal(int * a, int * b, int * c)
-{
-    const unsigned int thread_idx = (blockIdx.x * blockDim.x) + threadIdx.x;
-    
-    c[thread_idx] = a[thread_idx] + b[thread_idx];
-}
-
-// Global GPU subtract c[i] = a[i] - b[i]
-__global__ void subtractGlobal(int * a, int * b, int * c)
-{
-    const unsigned int thread_idx = (blockIdx.x * blockDim.x) + threadIdx.x;
-    
-    c[thread_idx] = a[thread_idx] - b[thread_idx];
-}
-
-// Global GPU multiply c[i] = a[i] * b[i]
-__global__ void multGlobal(int * a, int * b, int * c)
-{
-    const unsigned int thread_idx = (blockIdx.x * blockDim.x) + threadIdx.x;
-    
-    c[thread_idx] = a[thread_idx] * b[thread_idx];
-}
-
-// Global GPU div c[i] = a[i] / b[i]
-__global__ void divGlobal(int *a, int * b, int * c)
-{
-    const unsigned int thread_idx = (blockIdx.x * blockDim.x) + threadIdx.x;
-    
-    c[thread_idx] = a[thread_idx] / b[thread_idx];
-}
-
-// Global GPU mod c[i] = a[i] % b[i]
-__global__ void modGlobal(int * a, int * b, int * c)
-{
-    const unsigned int thread_idx = (blockIdx.x * blockDim.x) + threadIdx.x;
-    
-    c[thread_idx] = a[thread_idx] % b[thread_idx];
-}
-
 // Copies data from one array to another
 __device__ void copyData(const int * const srcArr,
 						 int * const destArr,
@@ -132,12 +92,6 @@ __global__ void executeSharedMathOperations(int * a, int * b, int * addDest, int
 __global__ void executeGlobalMathOperations(int * a, int * b, int * addDest, int * subDest, int * multDest, int * divDest, int * modDest, const int size)
 {
 	const int tid = (blockIdx.x * blockDim.x) + threadIdx.x;
-    __shared__ int sharedA[size];
-    __shared__ int sharedB[size];
-    __shared__ int sharedRet[size];
-    
-    copyData(a, sharedA, tid, size);
-    copyData(b, sharedB, tid, size);
     
     // Add sharedA to sharedB and store in addDest
     addGlobal(sharedA, sharedB, sharedRet);
@@ -330,34 +284,21 @@ void executeSharedTest(const int totalThreads, const int blockSize, const int nu
     cudaMemcpy(gpu_a, a, totalThreads * sizeof(int), cudaMemcpyHostToDevice);
     cudaMemcpy(gpu_b, b, totalThreads * sizeof(int), cudaMemcpyHostToDevice);
     
-    // Add all of the numbers c[i] = a[i] + b[i];
-    add<<<numBlocks, blockSize>>>(gpu_a,gpu_b,gpu_c);
+    executeSharedMathOperations<<<numBlocks, blockSize>>>(gpu_a,gpu_b,gpu_add_dest,gpu_sub_dest,gpu_mult_dest,gpu_div_dest,gpu_mod_dest, numBlocks * blockSize);
     
-    cudaMemcpy(c, gpu_c, totalThreads*sizeof(int), cudaMemcpyDeviceToHost);
-    
-    // Subtract all of the numbers c[i] = a[i] - b[i];
-    subtract<<<numBlocks, blockSize>>>(gpu_a,gpu_b,gpu_c);
-    
-    cudaMemcpy(c, gpu_c, totalThreads*sizeof(int), cudaMemcpyDeviceToHost);
-    
-    // Multiply all of the numbers c[i] = a[i] * b[i];
-    mult<<<numBlocks, blockSize>>>(gpu_a,gpu_b,gpu_c);
-    
-    cudaMemcpy(c, gpu_c, totalThreads*sizeof(int), cudaMemcpyDeviceToHost);
-    
-    // Divide all of the numbers c[i] = a[i] / b[i];
-    div<<<numBlocks, blockSize>>>(gpu_a,gpu_b,gpu_c);
-    
-    cudaMemcpy(c, gpu_c, totalThreads*sizeof(int), cudaMemcpyDeviceToHost);
-    
-    // Mod all of the numbers c[i] = a[i] % b[i];
-    mod<<<numBlocks, blockSize>>>(gpu_a,gpu_b,gpu_c);
-    
-    cudaMemcpy(c, gpu_c, totalThreads*sizeof(int), cudaMemcpyDeviceToHost);
+    cudaMemcpy(add_dest, gpu_add_dest,   totalThreads*sizeof(int), cudaMemcpyDeviceToHost);
+    cudaMemcpy(sub_dest, gpu_sub_dest,   totalThreads*sizeof(int), cudaMemcpyDeviceToHost);    
+    cudaMemcpy(mult_dest, gpu_mult_dest, totalThreads*sizeof(int), cudaMemcpyDeviceToHost);
+    cudaMemcpy(div_dest, gpu_div_dest,   totalThreads*sizeof(int), cudaMemcpyDeviceToHost);
+    cudaMemcpy(mod_dest, gpu_mod_dest,   totalThreads*sizeof(int), cudaMemcpyDeviceToHost);
     
     cudaFree(gpu_a);
     cudaFree(gpu_b);
-    cudaFree(gpu_c);    
+    cudaFree(gpu_add_dest);
+    cudaFree(gpu_sub_dest);
+    cudaFree(gpu_mult_dest);
+    cudaFree(gpu_div_dest);
+    cudaFree(gpu_mod_dest); 
 }
 
 void printArray(const int * const arr, const int xSize, const int ySize)
