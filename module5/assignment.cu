@@ -101,7 +101,7 @@ __global__ void executeGlobalMathOperations(int * a, int * b, int * addDest, int
 }
 
 // Executes all 5 constant math operations
-__global__ void executeConstantMathOperations(int * a, int * b, int * addDest, int * subDest, int * multDest, int * divDest, int * modDest, const int size)
+__global__ void executeConstantMathOperations(int * addDest, int * subDest, int * multDest, int * divDest, int * modDest, const int size)
 {    
 	const int tid = (blockIdx.x * blockDim.x) + threadIdx.x;
     // Add VAL_A to VAL_B and store in addDest
@@ -320,7 +320,7 @@ void executeConstantTest(const int totalThreads, const int blockSize, const int 
 {
     int a[totalThreads], b[totalThreads], add_dest[totalThreads], sub_dest[totalThreads], mult_dest[totalThreads], div_dest[totalThreads], mod_dest[totalThreads];
     
-    int *gpu_a, *gpu_b, *gpu_add_dest, *gpu_sub_dest, *gpu_mult_dest, *gpu_div_dest, *gpu_mod_dest;
+    int *gpu_add_dest, *gpu_sub_dest, *gpu_mult_dest, *gpu_div_dest, *gpu_mod_dest;
 
     cudaMalloc((void**)&gpu_a,         totalThreads * sizeof(int));
     cudaMalloc((void**)&gpu_b,         totalThreads * sizeof(int));
@@ -330,12 +330,9 @@ void executeConstantTest(const int totalThreads, const int blockSize, const int 
     cudaMalloc((void**)&gpu_div_dest,  totalThreads * sizeof(int));
     cudaMalloc((void**)&gpu_mod_dest,  totalThreads * sizeof(int));
     
-    cudaMemcpy(gpu_a, a, totalThreads * sizeof(int), cudaMemcpyHostToDevice);
-    cudaMemcpy(gpu_b, b, totalThreads * sizeof(int), cudaMemcpyHostToDevice);
-    
     // The third parameter is the size of the shared memory
     // We multiply by 3 because we need to copy A and B and then also have room for the return in shared memory.
-    executeConstantMathOperations<<<numBlocks, blockSize>>>(gpu_a,gpu_b,gpu_add_dest,gpu_sub_dest,gpu_mult_dest,gpu_div_dest,gpu_mod_dest, totalThreads);
+    executeConstantMathOperations<<<numBlocks, blockSize>>>(gpu_add_dest,gpu_sub_dest,gpu_mult_dest,gpu_div_dest,gpu_mod_dest, totalThreads);
     
     cudaMemcpy(add_dest,  gpu_add_dest,  totalThreads*sizeof(int), cudaMemcpyDeviceToHost);
     cudaMemcpy(sub_dest,  gpu_sub_dest,  totalThreads*sizeof(int), cudaMemcpyDeviceToHost);    
