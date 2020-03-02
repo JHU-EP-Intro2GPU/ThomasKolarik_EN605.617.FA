@@ -44,20 +44,6 @@ __device__ void mod(int * a, int * b, int * c)
     c[thread_idx] = a[thread_idx] % b[thread_idx];
 }
 
-// Copies data from one array to another
-__device__ void copyData(const int * const srcArr,
-						 int * const destArr,
-						 const int tid,
-						 const int size)
-{
-	// Copy data into temp store
-	for(int i = 0; i<size; i++)
-	{
-		destArr[i+tid] = srcArr[i+tid];
-	}
-	__syncthreads();
-}
-
 __global__ void executeSharedMathOperations(int * a, int * b, int * addDest, int * subDest, int * multDest, int * divDest, int * modDest, const int size)
 {
 	const int tid = (blockIdx.x * blockDim.x) + threadIdx.x;
@@ -65,28 +51,26 @@ __global__ void executeSharedMathOperations(int * a, int * b, int * addDest, int
     extern __shared__ int sharedB[];
     extern __shared__ int sharedRet[];
     
-    copyData(a, sharedA, tid, size);
-    copyData(b, sharedB, tid, size);
+    sharedA[tid] = a[tid];
     
     // Add sharedA to sharedB and store in addDest
     add(sharedA, sharedB, sharedRet);
-    copyData(sharedRet, addDest, tid, size);
+    addDest[tid] = sharedRet[tid];
     
     // Subtract sharedB from sharedA and store in subDest
     subtract(sharedA, sharedB, sharedRet);
-    copyData(sharedRet, subDest, tid, size);
-    
+    subDest[tid] = sharedRet[tid];
     // Multiply sharedA to sharedB and store in mutlDest
     mult(sharedA, sharedB, sharedRet);
-    copyData(sharedRet, multDest, tid, size);
+    multDest[tid] = sharedRet[tid];
     
     // Divide sharedA by sharedB and store in divDest
     div(sharedA, sharedB, sharedRet);
-    copyData(sharedRet, divDest, tid, size);
+    divDest[tid] = sharedRet[tid];
     
     // Mod sharedA by sharedB and store in modDest
     mod(sharedA, sharedB, sharedRet);
-    copyData(sharedRet, modDest, tid, size);
+    modDest[tid] = sharedRet[tid];
 }
 
 __global__ void executeGlobalMathOperations(int * a, int * b, int * addDest, int * subDest, int * multDest, int * divDest, int * modDest, const int size)
