@@ -94,24 +94,19 @@ __global__ void executeGlobalMathOperations(int * a, int * b, int * addDest, int
 	const int tid = (blockIdx.x * blockDim.x) + threadIdx.x;
     
     // Add a to b and store in addDest
-    add(a, b, sharedRet);
-    copyData(sharedRet, addDest, tid, size);
+    add(a, b, addDest);
     
     // Subtract a from b and store in subDest
-    sub(a, b, sharedRet);
-    copyData(sharedRet, subDest, tid, size);
+    subtract(a, b, subDest);
     
     // Multiply a to b and store in mutlDest
-    mult(a, b, sharedRet);
-    copyData(sharedRet, multDest, tid, size);
+    mult(a, b, multDest);
     
     // Divide a by b and store in divDest
-    div(a, b, sharedRet);
-    copyData(sharedRet, divDest, tid, size);
+    div(a, b, divDest);
     
     // Mod a by b and store in modDest
-    mod(a, b, sharedRet);
-    copyData(sharedRet, modDest, tid, size);
+    mod(a, b, modDest);
 }
 
 // Host (Cpu) add c[i] = a[i] + b[i]
