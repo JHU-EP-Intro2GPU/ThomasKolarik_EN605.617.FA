@@ -16,6 +16,11 @@ enum gpu_tests_enum
     NUM_GPU_TESTS
 };
 
+gpu_tests_enum& opeartor++(gpu_tests_enum& e)
+{
+    return e = (e == REGISTER) ? GLOBAL : static_cast<gpu_tests_enum>(static_cast<int>(e)+1);
+}
+
 std::string gpu_tests_strings[NUM_GPU_TESTS] = {
     "Global",
     "Shared",
@@ -415,7 +420,7 @@ int main(int argc, char** argv)
     std::chrono::duration<double> totalTime = endTime-startTime;
     std::cout << "Host execution took: " << totalTime.count() << " seconds." << std::endl;
     
-    for (int testType = GLOBAL; testType < NUM_GPU_TESTS; ++testType)
+    for (auto testType = GLOBAL; testType < NUM_GPU_TESTS; ++testType)
     {
         startTime = std::chrono::system_clock::now();
         executeGPUTest(totalThreads, blockSize, numBlocks, testType);
