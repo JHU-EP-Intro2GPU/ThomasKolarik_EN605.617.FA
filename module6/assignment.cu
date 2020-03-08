@@ -16,7 +16,7 @@ enum gpu_tests_enum
     NUM_GPU_TESTS
 };
 
-gpu_tests_enum& opeartor++(gpu_tests_enum& e)
+gpu_tests_enum& operator++(gpu_tests_enum& e)
 {
     return e = (e == REGISTER) ? GLOBAL : static_cast<gpu_tests_enum>(static_cast<int>(e)+1);
 }
