@@ -18,7 +18,7 @@ enum gpu_tests_enum
 
 gpu_tests_enum& operator++(gpu_tests_enum& e)
 {
-    return e = (e == REGISTER) ? GLOBAL : static_cast<gpu_tests_enum>(static_cast<int>(e)+1);
+    return e = (e == NUM_GPU_TESTS) ? GLOBAL : static_cast<gpu_tests_enum>(static_cast<int>(e)+1);
 }
 
 std::string gpu_tests_strings[NUM_GPU_TESTS] = {
