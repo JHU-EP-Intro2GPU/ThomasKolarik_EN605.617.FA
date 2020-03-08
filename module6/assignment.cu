@@ -20,8 +20,7 @@ std::string gpu_tests_strings[NUM_GPU_TESTS] = {
     "Global",
     "Shared",
     "Constant",
-    "Register",
-    "Unknown"};
+    "Register"};
 
 // Device GPU add c[i] = a[i] + b[i]
 __device__ void add(int * a, int * b, int * c)
@@ -350,7 +349,7 @@ void executeGPUTest(const int totalThreads, const int blockSize, const int numBl
             break;
         case REGISTER:
             // Executes global memory operations by saving the value into local registers first.
-            executeRegisterMathOperations<<<numBlocks, blockSize>>>(gpu_add_dest,gpu_sub_dest,gpu_mult_dest,gpu_div_dest,gpu_mod_dest, totalThreads);
+            executeRegisterMathOperations<<<numBlocks, blockSize>>>(gpu_a,gpu_b,gpu_add_dest,gpu_sub_dest,gpu_mult_dest,gpu_div_dest,gpu_mod_dest, totalThreads);
             break;
         default:
             std::cout << "Unknown test type " << testType << "!" << std::endl;
@@ -416,10 +415,10 @@ int main(int argc, char** argv)
     std::chrono::duration<double> totalTime = endTime-startTime;
     std::cout << "Host execution took: " << totalTime.count() << " seconds." << std::endl;
     
-    for (auto testType = GLOBAL; testType < NUM_GPU_TESTS; ++testType)
+    for (int testType = GLOBAL; testType < NUM_GPU_TESTS; ++testType)
     {
         startTime = std::chrono::system_clock::now();
-        executeGlobalTest(totalThreads, blockSize, numBlocks, testType);
+        executeGPUTest(totalThreads, blockSize, numBlocks, testType);
         endTime = std::chrono::system_clock::now();
         totalTime = endTime-startTime;
         std::cout << gpu_tests_strings[testType] + " Memory execution took: " << totalTime.count() << " seconds." << std::endl;
