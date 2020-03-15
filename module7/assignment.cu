@@ -404,6 +404,8 @@ void executeStreamTest(const int totalThreads, const int blockSize, const int nu
     modGlob<<<numBlocks, blockSize, 0, stream>>>(gpu_a, gpu_b, mod_dest);
     cudaMemcpyAsync(mod_dest,  gpu_mod_dest,  totalThreads*sizeof(int), cudaMemcpyDeviceToHost, stream);
     
+    cudaStreamSynchronize(stream);
+    
     cudaFree(gpu_a);
     cudaFree(gpu_b);
     cudaFree(gpu_add_dest);
