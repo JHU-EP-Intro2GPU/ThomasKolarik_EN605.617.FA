@@ -13,6 +13,7 @@ enum gpu_tests_enum
     SHARED,
     CONSTANT,
     REGISTER,
+    STREAM,
     NUM_GPU_TESTS
 };
 
@@ -25,7 +26,8 @@ std::string gpu_tests_strings[NUM_GPU_TESTS] = {
     "Global",
     "Shared",
     "Constant",
-    "Register"};
+    "Register",
+    "Stream"};
 
 // Device GPU add c[i] = a[i] + b[i]
 __device__ void add(int * a, int * b, int * c)
@@ -304,11 +306,82 @@ void executeHostTest(const int totalThreads, const int blockSize, const int numB
     hostMod(a,b,c, totalThreads);
 }
 
+// Executes a streams test, which is similar to the GPU tests below except here we make use
+// of CUDA streams and allocate/deallocate memory in an asynchronous fashion.
+// The data is filled with random numbers that uses the same seed as the CPU tests.
+void executeStreamTest(const int totalThreads, const int blockSize, const int numBlocks)
+{    
+    int a[totalThreads], b[totalThreads], add_dest[totalThreads], sub_dest[totalThreads], mult_dest[totalThreads], div_dest[totalThreads], mod_dest[totalThreads];
+
+    int *gpu_a, *gpu_b, *gpu_add_dest, *gpu_sub_dest, *gpu_mult_dest, *gpu_div_dest, *gpu_mod_dest;
+    
+    cudaStream_t stream;
+    cudaStreamCreate(&stream);
+
+    cudaMalloc((void**)&gpu_a,         totalThreads * sizeof(int));
+    cudaMalloc((void**)&gpu_b,         totalThreads * sizeof(int));
+    cudaMalloc((void**)&gpu_add_dest,  totalThreads * sizeof(int));
+    cudaMalloc((void**)&gpu_sub_dest,  totalThreads * sizeof(int));
+    cudaMalloc((void**)&gpu_mult_dest, totalThreads * sizeof(int));
+    cudaMalloc((void**)&gpu_div_dest,  totalThreads * sizeof(int));
+    cudaMalloc((void**)&gpu_mod_dest,  totalThreads * sizeof(int));
+    
+    // Create a random generate that will generate random numbers from 0 to 4.
+    // Use a set seed so output is deterministic
+    unsigned seed = 12345;
+    std::default_random_engine gen(seed);
+    std::uniform_int_distribution<int> dist(0,4);
+    
+    for (size_t i = 0; i < totalThreads; ++i)
+    {
+        a[i] = i;
+        b[i] = dist(gen);
+    }
+    
+    cudaMemcpyAsync(gpu_a, a, totalThreads * sizeof(int), cudaMemcpyHostToDevice, stream);
+    cudaMemcpyAsync(gpu_b, b, totalThreads * sizeof(int), cudaMemcpyHostToDevice, stream);
+ 
+    // Asynchronously add and then copy memory to host.
+    add<<<numBlocks, blockSize, 0, stream>>>(gpu_a, gpu_b, add_dest);
+    cudaMemcpyAsync(add_dest,  gpu_add_dest,  totalThreads*sizeof(int), cudaMemcpyDeviceToHost, stream);
+    
+    // Asynchronously subtract and then copy memory to host.
+    sub<<<numBlocks, blockSize, 0, stream>>>(gpu_a, gpu_b, sub_dest);
+    cudaMemcpyAsync(sub_dest,  gpu_sub_dest,  totalThreads*sizeof(int), cudaMemcpyDeviceToHost, stream);
+    
+    // Asynchronously multiply and then copy memory to host.
+    mult<<<numBlocks, blockSize, 0, stream>>>(gpu_a, gpu_b, mult_dest);
+    cudaMemcpyAsync(mult_dest, gpu_mult_dest, totalThreads*sizeof(int), cudaMemcpyDeviceToHost, stream);
+    
+    // Asynchronously divide and then copy memory to host.
+    div<<<numBlocks, blockSize, 0, stream>>>(gpu_a, gpu_b, div_dest);
+    cudaMemcpyAsync(div_dest,  gpu_div_dest,  totalThreads*sizeof(int), cudaMemcpyDeviceToHost, stream);
+    
+    // Asynchronously modulous and then copy memory to host.
+    mod<<<numBlocks, blockSize, 0, stream>>>(gpu_a, gpu_b, mod_dest);
+    cudaMemcpyAsync(mod_dest,  gpu_mod_dest,  totalThreads*sizeof(int), cudaMemcpyDeviceToHost, stream);
+    
+    cudaFree(gpu_a);
+    cudaFree(gpu_b);
+    cudaFree(gpu_add_dest);
+    cudaFree(gpu_sub_dest);
+    cudaFree(gpu_mult_dest);
+    cudaFree(gpu_div_dest);
+    cudaFree(gpu_mod_dest); 
+}
+
 // Executes each of the gpu tests by creating local memory, copying it global memory, and then performing
 // all 5 math operations on the data. 
 // The data is filled with random numbers that uses the same seed as the CPU tests.
-void executeGPUTest(const int totalThreads, const int blockSize, const int numBlocks , const gpu_tests_enum testType)
+void executeGPUTest(const int totalThreads, const int blockSize, const int numBlocks, const gpu_tests_enum testType)
 {
+    // The stream test works differently enough that it requires a different method since its calls will all be async.
+    if (testType == STREAM)
+    {
+        executeStreamTest(totalThreads, blockSize, numBlocks);
+        return;
+    }
+    
     int a[totalThreads], b[totalThreads], add_dest[totalThreads], sub_dest[totalThreads], mult_dest[totalThreads], div_dest[totalThreads], mod_dest[totalThreads];
     
     int *gpu_a, *gpu_b, *gpu_add_dest, *gpu_sub_dest, *gpu_mult_dest, *gpu_div_dest, *gpu_mod_dest;
@@ -335,7 +408,6 @@ void executeGPUTest(const int totalThreads, const int blockSize, const int numBl
     
     cudaMemcpy(gpu_a, a, totalThreads * sizeof(int), cudaMemcpyHostToDevice);
     cudaMemcpy(gpu_b, b, totalThreads * sizeof(int), cudaMemcpyHostToDevice);
-    
     
     switch (testType)
     {
