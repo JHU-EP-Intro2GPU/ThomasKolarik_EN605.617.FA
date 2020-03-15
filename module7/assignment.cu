@@ -29,6 +29,46 @@ std::string gpu_tests_strings[NUM_GPU_TESTS] = {
     "Register",
     "Stream"};
 
+// Global GPU add c[i] = a[i] + b[i]
+__global__ void addGlob(int * a, int * b, int * c)
+{
+    const unsigned int thread_idx = (blockIdx.x * blockDim.x) + threadIdx.x;
+    
+    c[thread_idx] = a[thread_idx] + b[thread_idx];
+}
+
+// Global GPU subtract c[i] = a[i] - b[i]
+__global__ void subtractGlob(int * a, int * b, int * c)
+{
+    const unsigned int thread_idx = (blockIdx.x * blockDim.x) + threadIdx.x;
+    
+    c[thread_idx] = a[thread_idx] - b[thread_idx];
+}
+
+// Global GPU multiply c[i] = a[i] * b[i]
+__global__ void multGlob(int * a, int * b, int * c)
+{
+    const unsigned int thread_idx = (blockIdx.x * blockDim.x) + threadIdx.x;
+    
+    c[thread_idx] = a[thread_idx] * b[thread_idx];
+}
+
+// Global GPU div c[i] = a[i] / b[i]
+__global__ void divGlob(int *a, int * b, int * c)
+{
+    const unsigned int thread_idx = (blockIdx.x * blockDim.x) + threadIdx.x;
+    
+    c[thread_idx] = a[thread_idx] / b[thread_idx];
+}
+
+// Global GPU mod c[i] = a[i] % b[i]
+__global__ void modGlob(int * a, int * b, int * c)
+{
+    const unsigned int thread_idx = (blockIdx.x * blockDim.x) + threadIdx.x;
+    
+    c[thread_idx] = a[thread_idx] % b[thread_idx];
+}
+
 // Device GPU add c[i] = a[i] + b[i]
 __device__ void add(int * a, int * b, int * c)
 {
@@ -338,27 +378,30 @@ void executeStreamTest(const int totalThreads, const int blockSize, const int nu
         b[i] = dist(gen);
     }
     
+    // Here we will now copy memory asynchronously and call each of the global version of the math
+    // methods using a stream. This will allow the stream to do its own calculation of how these
+    // methods should be executed.
     cudaMemcpyAsync(gpu_a, a, totalThreads * sizeof(int), cudaMemcpyHostToDevice, stream);
     cudaMemcpyAsync(gpu_b, b, totalThreads * sizeof(int), cudaMemcpyHostToDevice, stream);
  
     // Asynchronously add and then copy memory to host.
-    add<<<numBlocks, blockSize, 0, stream>>>(gpu_a, gpu_b, add_dest);
+    addGlob<<<numBlocks, blockSize, 0, stream>>>(gpu_a, gpu_b, add_dest);
     cudaMemcpyAsync(add_dest,  gpu_add_dest,  totalThreads*sizeof(int), cudaMemcpyDeviceToHost, stream);
     
     // Asynchronously subtract and then copy memory to host.
-    sub<<<numBlocks, blockSize, 0, stream>>>(gpu_a, gpu_b, sub_dest);
+    subtractGlob<<<numBlocks, blockSize, 0, stream>>>(gpu_a, gpu_b, sub_dest);
     cudaMemcpyAsync(sub_dest,  gpu_sub_dest,  totalThreads*sizeof(int), cudaMemcpyDeviceToHost, stream);
     
     // Asynchronously multiply and then copy memory to host.
-    mult<<<numBlocks, blockSize, 0, stream>>>(gpu_a, gpu_b, mult_dest);
+    multGlob<<<numBlocks, blockSize, 0, stream>>>(gpu_a, gpu_b, mult_dest);
     cudaMemcpyAsync(mult_dest, gpu_mult_dest, totalThreads*sizeof(int), cudaMemcpyDeviceToHost, stream);
     
     // Asynchronously divide and then copy memory to host.
-    div<<<numBlocks, blockSize, 0, stream>>>(gpu_a, gpu_b, div_dest);
+    divGlob<<<numBlocks, blockSize, 0, stream>>>(gpu_a, gpu_b, div_dest);
     cudaMemcpyAsync(div_dest,  gpu_div_dest,  totalThreads*sizeof(int), cudaMemcpyDeviceToHost, stream);
     
     // Asynchronously modulous and then copy memory to host.
-    mod<<<numBlocks, blockSize, 0, stream>>>(gpu_a, gpu_b, mod_dest);
+    modGlob<<<numBlocks, blockSize, 0, stream>>>(gpu_a, gpu_b, mod_dest);
     cudaMemcpyAsync(mod_dest,  gpu_mod_dest,  totalThreads*sizeof(int), cudaMemcpyDeviceToHost, stream);
     
     cudaFree(gpu_a);
