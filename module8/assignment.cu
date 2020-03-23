@@ -31,8 +31,6 @@ void executeMultTest(const int totalThreads, const int blockSize, const int numB
     const unsigned int seed = 1;
     
     // Allocate space for all of the device Matricies
-    float *hostA = (float*)malloc(totalThreads*sizeof(float));
-    float *hostB = (float*)malloc(totalThreads*sizeof(float));
     float *hostC = (float*)malloc(totalThreads*sizeof(float));
     
     cublasStatus status;
@@ -44,45 +42,48 @@ void executeMultTest(const int totalThreads, const int blockSize, const int numB
     initCudaRandom<<<numBlocks, blockSize>>>(seed, states);
 
     // Allocate space for all of the device matricies
-    float *gpuA = (float*)cublasAlloc(totalThreads*sizeof(float));
-    float *gpuB = (float*)cublasAlloc(totalThreads*sizeof(float));
-    float *gpuC = (float*)cublasAlloc(blockSize*blockSize*sizeof(float));
+    float *gpuA;
+    float *gpuB;
+    float *gpuC;
 
+    status=cublasAlloc(totalThreads,sizeof(float),(void**)&gpuA);
+    if (status != CUBLAS_STATUS_SUCCESS) {
+      fprintf (stderr, "Unable to allocate memory for gpuA!\n");
+      return;
+    }
+
+    status=cublasAlloc(totalThreads,sizeof(float),(void**)&gpuB);
+    if (status != CUBLAS_STATUS_SUCCESS) {
+      fprintf (stderr, "Unable to allocate memory for gpuB!\n");
+      return;
+    }
+
+    status=cublasAlloc(blockSize*blockSize,sizeof(float),(void**)&gpuC);
+    if (status != CUBLAS_STATUS_SUCCESS) {
+      fprintf (stderr, "Unable to allocate memory for gpuC!\n");
+      return;
+    }
+    
     /* invoke the kernel to get some random numbers */
     populateCudaRandom<<<numBlocks, blockSize>>>(states, gpuA);
     populateCudaRandom<<<blockSize, numBlocks>>>(states, gpuB);
     populateCudaRandom<<<blockSize, blockSize>>>(states, gpuC);
-
-    /*SET MATRIX*/
-    status=cublasSetMatrix(numBlocks,blockSize,sizeof(float),hostA,numBlocks,gpuA,numBlocks);
-    if (status != CUBLAS_STATUS_SUCCESS) {
-      fprintf (stderr, "!!!! device memory allocation error (A)\n");
-      return;
-    }
-
-    status=cublasSetMatrix(blockSize,numBlocks,sizeof(float),hostB,blockSize,gpuB,blockSize);
-    if (status != CUBLAS_STATUS_SUCCESS) {
-      fprintf (stderr, "!!!! device memory allocation error (A)\n");
-      return;
-    }
 
     /*KERNEL*/
     cublasSgemm('n','n',numBlocks,numBlocks,blockSize,1,gpuA,numBlocks,gpuB,blockSize,0,gpuC,numBlocks);
 
     status = cublasGetError();
     if (status != CUBLAS_STATUS_SUCCESS) {
-      fprintf (stderr, "!!!! kernel execution error.\n");
+      fprintf (stderr, "Error during multiplication!\n");
       return;
     }
     cublasGetMatrix(numBlocks,blockSize,sizeof(float),gpuC,blockSize,hostC,blockSize);
     if (status != CUBLAS_STATUS_SUCCESS) {
-      fprintf (stderr, "!!!! device read error (A)\n");
+      fprintf (stderr, "Error during Matrix Extraction!\n");
       return;
     }
     
     // Free all memory allocations
-    free(hostA);
-    free(hostB);
     free(hostC);
     cudaFree(states);
     status = cublasFree(gpuA);
