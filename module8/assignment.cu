@@ -6,7 +6,7 @@
 #include <chrono>
 #include <stdio.h>
 
-/* this GPU kernel function is used to initialize the random states */
+// Initializes the random number generate for use inside of a kernal
 __global__ void initCudaRandom(unsigned int seed, curandState_t* states)
 {
     const unsigned int thread_idx = (blockIdx.x * blockDim.x) + threadIdx.x;
@@ -16,6 +16,7 @@ __global__ void initCudaRandom(unsigned int seed, curandState_t* states)
               &states[thread_idx]);
 }
 
+// Populate the given result array with a random number given a state.
 __global__ void populateCudaRandom(curandState_t* state, float* result)
 {
     const unsigned int thread_idx = (blockIdx.x * blockDim.x) + threadIdx.x;
@@ -64,19 +65,21 @@ void executeMultTest(const int totalThreads, const int blockSize, const int numB
       return;
     }
     
-    /* invoke the kernel to get some random numbers */
+    // Populate the inputs with random numbers
     populateCudaRandom<<<numBlocks, blockSize>>>(states, gpuA);
     populateCudaRandom<<<blockSize, numBlocks>>>(states, gpuB);
-    populateCudaRandom<<<blockSize, blockSize>>>(states, gpuC);
 
-    /*KERNEL*/
+    // Do the matrix multiplication
     cublasSgemm('n','n',numBlocks,numBlocks,blockSize,1,gpuA,numBlocks,gpuB,blockSize,0,gpuC,numBlocks);
 
+    // Check for any errors
     status = cublasGetError();
     if (status != CUBLAS_STATUS_SUCCESS) {
       fprintf (stderr, "Error during multiplication!\n");
       return;
     }
+    
+    // Copy the matrix to a host array
     cublasGetMatrix(blockSize,blockSize,sizeof(float),gpuC,blockSize,hostC,blockSize);
     if (status != CUBLAS_STATUS_SUCCESS) {
       fprintf (stderr, "Error during Matrix Extraction!\n");
@@ -142,6 +145,8 @@ int main(int argc, char** argv)
         printf("The total number of threads will be rounded up to %d\n", totalThreads);
     }
 
+    // Use the cuda blas and random number generator libraries and time how long it takes
+    // to execute.
     auto startTime = std::chrono::system_clock::now();
     executeMultTest(totalThreads, blockSize, numBlocks);
     auto endTime = std::chrono::system_clock::now();
