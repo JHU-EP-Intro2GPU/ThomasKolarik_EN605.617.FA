@@ -13,7 +13,7 @@ __global__ void initCudaRandom(unsigned int seed, curandState_t* states)
     curand_init(seed,
               thread_idx,
               0,
-              &states[blockIdx.x]);
+              &states[thread_idx]);
 }
 
 __global__ void populateCudaRandom(curandState_t* state, float* result)
@@ -31,7 +31,7 @@ void executeMultTest(const int totalThreads, const int blockSize, const int numB
     const unsigned int seed = 1;
     
     // Allocate space for all of the device Matricies
-    float *hostC = (float*)malloc(totalThreads*sizeof(float));
+    float *hostC = (float*)malloc(blockSize*blockSize*sizeof(float));
     
     cublasStatus status;
     cublasInit();
@@ -77,7 +77,7 @@ void executeMultTest(const int totalThreads, const int blockSize, const int numB
       fprintf (stderr, "Error during multiplication!\n");
       return;
     }
-    cublasGetMatrix(numBlocks,blockSize,sizeof(float),gpuC,blockSize,hostC,blockSize);
+    cublasGetMatrix(blockSize,blockSize,sizeof(float),gpuC,blockSize,hostC,blockSize);
     if (status != CUBLAS_STATUS_SUCCESS) {
       fprintf (stderr, "Error during Matrix Extraction!\n");
       return;
