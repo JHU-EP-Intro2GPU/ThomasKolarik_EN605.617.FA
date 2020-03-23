@@ -16,12 +16,11 @@ __global__ void initCudaRandom(unsigned int seed, curandState_t* states)
               &states[blockIdx.x]);
 }
 
-__global__ void populateCudaRandom(curandState_t* state, int* result)
+__global__ void populateCudaRandom(curandState_t* state, float* result)
 {
-    const int MAX_RAND = 100;
     const unsigned int thread_idx = (blockIdx.x * blockDim.x) + threadIdx.x;
 
-    result[thread_idx] = curand(&state[thread_idx]) % MAX_RAND;
+    result[thread_idx] = curand(&state[thread_idx]);
 }
     
 // Executes matrix multiplication using the CUDA BLAS library.
@@ -32,9 +31,9 @@ void executeMultTest(const int totalThreads, const int blockSize, const int numB
     const unsigned int seed = 1;
     
     // Allocate space for all of the device Matricies
-    int *hostA = (int*)malloc(totalThreads*sizeof(int));
-    int *hostB = (int*)malloc(totalThreads*sizeof(int));
-    int *hostC = (int*)malloc(totalThreads*sizeof(int));
+    float *hostA = (float*)malloc(totalThreads*sizeof(float));
+    float *hostB = (float*)malloc(totalThreads*sizeof(float));
+    float *hostC = (float*)malloc(totalThreads*sizeof(float));
     
     cublasStatus status;
     cublasInit();
@@ -45,9 +44,9 @@ void executeMultTest(const int totalThreads, const int blockSize, const int numB
     initCudaRandom<<<numBlocks, blockSize>>>(seed, states);
 
     // Allocate space for all of the device matricies
-    int *gpuA = (int*)cublasAlloc(totalThreads*sizeof(int));
-    int *gpuB = (int*)cublasAlloc(totalThreads*sizeof(int));
-    int *gpuC = (int*)cublasAlloc(blockSize*blockSize*sizeof(int));
+    float *gpuA = (float*)cublasAlloc(totalThreads*sizeof(float));
+    float *gpuB = (float*)cublasAlloc(totalThreads*sizeof(float));
+    float *gpuC = (float*)cublasAlloc(blockSize*blockSize*sizeof(float));
 
     /* invoke the kernel to get some random numbers */
     populateCudaRandom<<<numBlocks, blockSize>>>(states, gpuA);
