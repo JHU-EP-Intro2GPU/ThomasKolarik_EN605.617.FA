@@ -1,4 +1,5 @@
 #include <curand.h>
+#include <curand_kernel.h>
 #include <iostream>
 #include <random>
 #include <chrono>
