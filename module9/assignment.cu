@@ -17,6 +17,7 @@ enum gpu_tests_enum
     CONSTANT,
     REGISTER,
     STREAM,
+    THRUST,
     NUM_GPU_TESTS
 };
 
@@ -30,7 +31,8 @@ std::string gpu_tests_strings[NUM_GPU_TESTS] = {
     "Shared",
     "Constant",
     "Register",
-    "Stream"};
+    "Stream",
+    "Thrust"};
 
 // Global GPU add c[i] = a[i] + b[i]
 __global__ void addGlob(int * a, int * b, int * c)
@@ -66,46 +68,6 @@ __global__ void divGlob(int *a, int * b, int * c)
 
 // Global GPU mod c[i] = a[i] % b[i]
 __global__ void modGlob(int * a, int * b, int * c)
-{
-    const unsigned int thread_idx = (blockIdx.x * blockDim.x) + threadIdx.x;
-    
-    c[thread_idx] = a[thread_idx] % b[thread_idx];
-}
-
-// Global Vector GPU add c[i] = a[i] + b[i]
-__global__ void addVec(thrust::device_vector<int> & a, const thrust::device_vector<int> & b, const thrust::device_vector<int> & c)
-{
-    const unsigned int thread_idx = (blockIdx.x * blockDim.x) + threadIdx.x;
-    
-    c[thread_idx] = a[thread_idx] + b[thread_idx];
-}
-
-// Global Vector GPU subtract c[i] = a[i] - b[i]
-__global__ void subtractVec(thrust::device_vector<int> & a, const thrust::device_vector<int> & b, const thrust::device_vector<int> & c)
-{
-    const unsigned int thread_idx = (blockIdx.x * blockDim.x) + threadIdx.x;
-    
-    c[thread_idx] = a[thread_idx] - b[thread_idx];
-}
-
-// Global Vector GPU multiply c[i] = a[i] * b[i]
-__global__ void multVec(thrust::device_vector<int> & a, const thrust::device_vector<int> & b, const thrust::device_vector<int> & c)
-{
-    const unsigned int thread_idx = (blockIdx.x * blockDim.x) + threadIdx.x;
-    
-    c[thread_idx] = a[thread_idx] * b[thread_idx];
-}
-
-// Global Vector GPU div c[i] = a[i] / b[i]
-__global__ void divVec(thrust::device_vector<int> & a, const thrust::device_vector<int> & b, const thrust::device_vector<int> & c)
-{
-    const unsigned int thread_idx = (blockIdx.x * blockDim.x) + threadIdx.x;
-    
-    c[thread_idx] = a[thread_idx] / b[thread_idx];
-}
-
-// Global Vector GPU mod c[i] = a[i] % b[i]
-__global__ void modVec(thrust::device_vector<int> & a, const thrust::device_vector<int> & b, const thrust::device_vector<int> & c)
 {
     const unsigned int thread_idx = (blockIdx.x * blockDim.x) + threadIdx.x;
     
@@ -498,23 +460,52 @@ void executeThrustTest(const int totalThreads, const int blockSize, const int nu
     gpu_b = b;
     
     // add and then copy memory to host.
-    addVec<<<numBlocks, blockSize>>>(gpu_a, gpu_b, gpu_add_dest);
+    for (int i = 0; i < numThreads; ++i)
+    {
+        gpu_add_dest[i] = gpu_a[i] + gpu_b[i];
+    }
     add_dest = gpu_add_dest;
     
     // subtract and then copy memory to host.
-    subtractVec<<<numBlocks, blockSize>>>(gpu_a, gpu_b, gpu_sub_dest);
+    for (int i = 0; i < numThreads; ++i)
+    {
+        gpu_sub_dest[i] = gpu_a[i] - gpu_b[i];
+    }
     sub_dest = gpu_sub_dest;
     
     // multiply and then copy memory to host.
-    multVec<<<numBlocks, blockSize>>>(gpu_a, gpu_b, gpu_mult_dest);
+    for (int i = 0; i < numThreads; ++i)
+    {
+        gpu_mult_dest[i] = gpu_a[i] * gpu_b[i];
+    }
     mult_dest = gpu_mult_dest;
     
     // divide and then copy memory to host.
-    divVec<<<numBlocks, blockSize>>>(gpu_a, gpu_b, gpu_div_dest);
+    for (int i = 0; i < numThreads; ++i)
+    {
+        if (gpu_b[i] != 0)
+        {
+            gpu_div_dest[i] = gpu_a[i] / gpu_b[i];
+        }
+        else
+        {
+            gpu_div_dest[i] = 0;
+        }
+    }
     div_dest = gpu_div_dest;
     
     // modulous and then copy memory to host.
-    modVec<<<numBlocks, blockSize>>>(gpu_a, gpu_b, gpu_mod_dest);
+    for (int i = 0; i < numThreads; ++i)
+    {
+        if (gpu_b[i] != 0)
+        {
+            gpu_mod_dest[i] = gpu_a[i] % gpu_b[i];
+        }
+        else
+        {
+            gpu_mod_dest[i] = 0;
+        }
+    }
     mod_dest = gpu_mod_dest;
 }
 
@@ -527,6 +518,13 @@ void executeGPUTest(const int totalThreads, const int blockSize, const int numBl
     if (testType == STREAM)
     {
         executeStreamTest(totalThreads, blockSize, numBlocks);
+        return;
+    }
+    
+    // The thurst test works differently since it create thrust vectors
+    if (testType == THRUST)
+    {
+        executeThrustTest(totalThreads, blockSize, numBlocks);
         return;
     }
     
