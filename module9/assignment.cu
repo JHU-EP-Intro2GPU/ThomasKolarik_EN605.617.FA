@@ -469,7 +469,7 @@ void executeThrustTest(const int totalThreads, const int blockSize, const int nu
     thrust::host_vector<int> add_dest(totalThreads);
     thrust::host_vector<int> sub_dest(totalThreads);
     thrust::host_vector<int> mult_dest(totalThreads);
-    thrust::host_vector<int> div_dest(totalThreads):
+    thrust::host_vector<int> div_dest(totalThreads);
     thrust::host_vector<int> mod_dest(totalThreads);
 
     // Create device vectors
@@ -498,23 +498,23 @@ void executeThrustTest(const int totalThreads, const int blockSize, const int nu
     gpu_b = b;
     
     // add and then copy memory to host.
-    addVec<<<numBlocks, blockSize, 0, stream>>>(gpu_a, gpu_b, gpu_add_dest);
+    addVec<<<numBlocks, blockSize>>>(gpu_a, gpu_b, gpu_add_dest);
     add_dest = gpu_add_dest;
     
     // subtract and then copy memory to host.
-    subtractVec<<<numBlocks, blockSize, 0, stream>>>(gpu_a, gpu_b, gpu_sub_dest);
+    subtractVec<<<numBlocks, blockSize>>>(gpu_a, gpu_b, gpu_sub_dest);
     sub_dest = gpu_sub_dest;
     
     // multiply and then copy memory to host.
-    multVec<<<numBlocks, blockSize, 0, stream>>>(gpu_a, gpu_b, gpu_mult_dest);
-    mult_dest = mult_add_dest;
+    multVec<<<numBlocks, blockSize>>>(gpu_a, gpu_b, gpu_mult_dest);
+    mult_dest = gpu_mult_dest;
     
     // divide and then copy memory to host.
-    divVec<<<numBlocks, blockSize, 0, stream>>>(gpu_a, gpu_b, gpu_div_dest);
+    divVec<<<numBlocks, blockSize>>>(gpu_a, gpu_b, gpu_div_dest);
     div_dest = gpu_div_dest;
     
     // modulous and then copy memory to host.
-    modVec<<<numBlocks, blockSize, 0, stream>>>(gpu_a, gpu_b, gpu_mod_dest);
+    modVec<<<numBlocks, blockSize>>>(gpu_a, gpu_b, gpu_mod_dest);
     mod_dest = gpu_mod_dest;
 }
 
