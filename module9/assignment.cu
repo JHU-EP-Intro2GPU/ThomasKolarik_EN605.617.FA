@@ -460,28 +460,28 @@ void executeThrustTest(const int totalThreads, const int blockSize, const int nu
     gpu_b = b;
     
     // add and then copy memory to host.
-    for (int i = 0; i < numThreads; ++i)
+    for (int i = 0; i < totalThreads; ++i)
     {
         gpu_add_dest[i] = gpu_a[i] + gpu_b[i];
     }
     add_dest = gpu_add_dest;
     
     // subtract and then copy memory to host.
-    for (int i = 0; i < numThreads; ++i)
+    for (int i = 0; i < totalThreads; ++i)
     {
         gpu_sub_dest[i] = gpu_a[i] - gpu_b[i];
     }
     sub_dest = gpu_sub_dest;
     
     // multiply and then copy memory to host.
-    for (int i = 0; i < numThreads; ++i)
+    for (int i = 0; i < totalThreads; ++i)
     {
         gpu_mult_dest[i] = gpu_a[i] * gpu_b[i];
     }
     mult_dest = gpu_mult_dest;
     
     // divide and then copy memory to host.
-    for (int i = 0; i < numThreads; ++i)
+    for (int i = 0; i < totalThreads; ++i)
     {
         if (gpu_b[i] != 0)
         {
@@ -495,7 +495,7 @@ void executeThrustTest(const int totalThreads, const int blockSize, const int nu
     div_dest = gpu_div_dest;
     
     // modulous and then copy memory to host.
-    for (int i = 0; i < numThreads; ++i)
+    for (int i = 0; i < totalThreads; ++i)
     {
         if (gpu_b[i] != 0)
         {
