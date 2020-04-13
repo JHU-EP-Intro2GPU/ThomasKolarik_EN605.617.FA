@@ -211,12 +211,14 @@ int boxFilterNPPTest(int argc, char **argv)
         exit(EXIT_FAILURE);
         return -1;
     }
+    
+    return 0;
 }
 
 // Execute the NVIDIA example page rank test. This algorithm computes weights of various 
 int pageRankTest(int argc, char **argv)
 {
-    const size_t  n = 6, nnz = 10, vertex_numsets = 3, edge_numsets = 1;
+    size_t  n = 6, nnz = 10, vertex_numsets = 3, edge_numsets = 1;
     const float alpha1 = 0.85, alpha2 = 0.90;
     const void *alpha1_p = (const void *) &alpha1, *alpha2_p = (const void *) &alpha2;
     int i, *destination_offsets_h, *source_indices_h;
@@ -280,7 +282,7 @@ int pageRankTest(int argc, char **argv)
     // Use a set seed so output is deterministic
     unsigned seed = 12345;
     std::default_random_engine gen(seed);
-    std::uniform_float_distribution<float> floatDist(0.0,1.0);
+    std::uniform_real_distribution<float> floatDist(0.0,1.0);
     std::uniform_int_distribution<int> intDist(0,nnz);
     
     for (i = 0; i < nnz; ++i)
