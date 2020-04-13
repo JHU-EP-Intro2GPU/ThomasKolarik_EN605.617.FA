@@ -163,9 +163,16 @@ int boxFilterNPPTest(int argc, char **argv)
         // declare a device image and copy construct from the host image,
         // i.e. upload host to device
         npp::ImageNPP_8u_C1 oDeviceSrc(oHostSrc);
+        
+        int boxfilterSize = 5;
+        
+        if (checkCmdLineFlag(argc, (const char **)argv, "boxfilterSize"))
+        {
+            boxfilterSize = getCmdLineArgumentInt(argc, (const char **)argv, "boxfilterSize")
+        }
 
         // create struct with box-filter mask size
-        NppiSize oMaskSize = {5, 5};
+        NppiSize oMaskSize = {boxfilterSize, boxfilterSize};
 
         NppiSize oSrcSize = {(int)oDeviceSrc.width(), (int)oDeviceSrc.height()};
         NppiPoint oSrcOffset = {0, 0};
@@ -287,22 +294,24 @@ int pageRankTest(int argc, char **argv)
     
     for (i = 0; i < nnz; ++i)
     {
-        weights_h [i] = floatDist(gen);
+        weights_h[i] = floatDist(gen);
     }
 
-    for (i = 0; i < n+1; ++i)
+    for (i = 0; i < n; ++i)
     {
-        destination_offsets_h [i] = intDist(gen);
+        destination_offsets_h[i] = i;
     }
-
+    
+    destination_offsets_h[n] = nnz;
+    
     for (i = 0; i < nnz; ++i)
     {
-        source_indices_h [0] = intDist(gen);
+        source_indices_h[i] = intDist(gen);
     }
 
     for (int i = 0; i < n; ++i)
     {
-        bookmark_h[0] = floatDist(gen);
+        bookmark_h[i] = floatDist(gen);
     }
 
     // Starting nvgraph
@@ -323,7 +332,7 @@ int pageRankTest(int argc, char **argv)
     check_status(nvgraphSetEdgeData(handle, graph, (void*)weights_h, 0));
     
     // First run with default values
-    check_status(nvgraphPagerank(handle, graph, 0, alpha1_p, 0, 0, 1, 0.0f, 0));
+    check_status(nvgraphPagerank(handle, graph, 0, alpha1_p, 0, 0, 1, 0.5f, 100));
     
     // Get and print result
     check_status(nvgraphGetVertexData(handle, graph, vertex_dim[1], 1));
@@ -334,7 +343,7 @@ int pageRankTest(int argc, char **argv)
         pr_2[i] =pr_1[i]; 
    
     nvgraphSetVertexData(handle, graph, vertex_dim[2], 2);
-    check_status(nvgraphPagerank(handle, graph, 0, alpha2_p, 0, 1, 2, 0.0f, 0));
+    check_status(nvgraphPagerank(handle, graph, 0, alpha2_p, 0, 1, 2, 0.5f, 100));
 
     // Get and print result
     check_status(nvgraphGetVertexData(handle, graph, vertex_dim[2], 2));
