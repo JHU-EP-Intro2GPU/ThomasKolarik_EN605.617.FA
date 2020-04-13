@@ -222,6 +222,16 @@ int pageRankTest(int argc, char **argv)
     int i, *destination_offsets_h, *source_indices_h;
     float *weights_h, *bookmark_h, *pr_1,*pr_2;
     void** vertex_dim;
+    
+    if (checkCmdLineFlag(argc, (const char **)argv, "pageRankSize"))
+    {
+        n = getCmdLineArgumentInt(argc, (const char **)argv, "pageRankSize");
+    }
+    
+    if (checkCmdLineFlag(argc, (const char **)argv, "pageRankWeightSize"))
+    {
+        nnz = getCmdLineArgumentInt(argc, (const char **)argv, "pageRankWeightSize");
+    }
 
     // nvgraph variables
     nvgraphStatus_t status;
@@ -266,42 +276,32 @@ int pageRankTest(int argc, char **argv)
     vertex_dim[0] = (void*)bookmark_h; vertex_dim[1]= (void*)pr_1, vertex_dim[2]= (void*)pr_2;
     vertex_dimT[0] = CUDA_R_32F; vertex_dimT[1]= CUDA_R_32F, vertex_dimT[2]= CUDA_R_32F;
     
-    weights_h [0] = 0.333333f;
-    weights_h [1] = 0.500000f;
-    weights_h [2] = 0.333333f;
-    weights_h [3] = 0.500000f;
-    weights_h [4] = 0.500000f;
-    weights_h [5] = 1.000000f;
-    weights_h [6] = 0.333333f;
-    weights_h [7] = 0.500000f;
-    weights_h [8] = 0.500000f;
-    weights_h [9] = 0.500000f;
+    // Create a random generate that will generate random numbers from 0 to 1.0.
+    // Use a set seed so output is deterministic
+    unsigned seed = 12345;
+    std::default_random_engine gen(seed);
+    std::uniform_float_distribution<float> floatDist(0.0,1.0);
+    std::uniform_int_distribution<int> intDist(0,nnz);
+    
+    for (i = 0; i < nnz; ++i)
+    {
+        weights_h [i] = floatDist(gen);
+    }
 
-    destination_offsets_h [0] = 0;
-    destination_offsets_h [1] = 1;
-    destination_offsets_h [2] = 3;
-    destination_offsets_h [3] = 4;
-    destination_offsets_h [4] = 6;
-    destination_offsets_h [5] = 8;
-    destination_offsets_h [6] = 10;
+    for (i = 0; i < n+1; ++i)
+    {
+        destination_offsets_h [i] = intDist(gen);
+    }
 
-    source_indices_h [0] = 2;
-    source_indices_h [1] = 0;
-    source_indices_h [2] = 2;
-    source_indices_h [3] = 0;
-    source_indices_h [4] = 4;
-    source_indices_h [5] = 5;
-    source_indices_h [6] = 2;
-    source_indices_h [7] = 3;
-    source_indices_h [8] = 3;
-    source_indices_h [9] = 4;
+    for (i = 0; i < nnz; ++i)
+    {
+        source_indices_h [0] = intDist(gen);
+    }
 
-    bookmark_h[0] = 0.0f;
-    bookmark_h[1] = 1.0f;
-    bookmark_h[2] = 0.0f;
-    bookmark_h[3] = 0.0f;
-    bookmark_h[4] = 0.0f;
-    bookmark_h[5] = 0.0f;
+    for (int i = 0; i < n; ++i)
+    {
+        bookmark_h[0] = floatDist(gen);
+    }
 
     // Starting nvgraph
     check_status(nvgraphCreate (&handle));
