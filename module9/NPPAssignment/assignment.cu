@@ -168,7 +168,7 @@ int boxFilterNPPTest(int argc, char **argv)
         
         if (checkCmdLineFlag(argc, (const char **)argv, "boxfilterSize"))
         {
-            boxfilterSize = getCmdLineArgumentInt(argc, (const char **)argv, "boxfilterSize")
+            boxfilterSize = getCmdLineArgumentInt(argc, (const char **)argv, "boxfilterSize");
         }
 
         // create struct with box-filter mask size
