@@ -168,10 +168,11 @@ int main(int argc, char *argv[])
         NppiPoint oAnchor = {oMaskSize.width / 2, oMaskSize.height / 2};
 
         // run box filter
+                NPP_CHECK_NPP (
         nppiFilterBoxBorder_8u_C1R(oDeviceSrc.data(), oDeviceSrc.pitch(),
                                    oSrcSize, oSrcOffset,
                                    oDeviceDst.data(), oDeviceDst.pitch(),
-                                   oSizeROI, oMaskSize, oAnchor, NPP_BORDER_REPLICATE);
+                                   oSizeROI, oMaskSize, oAnchor, NPP_BORDER_REPLICATE));
 
         // declare a host image for the result
         npp::ImageCPU_8u_C1 oHostDst(oDeviceDst.size());
