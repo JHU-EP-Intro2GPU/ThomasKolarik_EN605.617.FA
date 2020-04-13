@@ -1,3 +1,16 @@
+/**
+ * Most of the follow code falls under the following stipulation from NVIDIA.
+ *
+ * Copyright 1993-2015 NVIDIA Corporation.  All rights reserved.
+ *
+ * Please refer to the NVIDIA end user license agreement (EULA) associated
+ * with this source code for terms and conditions that govern your use of
+ * this software. Any use, reproduction, disclosure, or distribution of
+ * this software and related documentation outside the terms of the EULA
+ * is strictly prohibited.
+ *
+ */
+
 #include <iostream>
 #include <random>
 #include <chrono>
@@ -17,8 +30,9 @@
 #include <helper_string.h>
 #include <helper_cuda.h>
 
-
-void check_status(nvgraphStatus_t status)
+// Checks the given nvGraphStatus for errors, then outputs
+// a log and exits the program if any errors are produced.
+void check_status(const nvgraphStatus_t & status)
 {
     if ((int)status != 0)
     {
@@ -27,7 +41,8 @@ void check_status(nvgraphStatus_t status)
     }
 }
 
-bool printfNPPinfo(int argc, char *argv[])
+// Prints the NPP library information
+bool printfNPPinfo()
 {
     const NppLibraryVersion *libVer   = nppGetLibVersion();
 
@@ -45,7 +60,8 @@ bool printfNPPinfo(int argc, char *argv[])
     return bVal;
 }
 
-inline int cudaDeviceInit(int argc, const char **argv)
+// Initializes a CUDA device and returns the device ID for future use.
+int cudaDeviceInit(int argc, const char **argv)
 {
     int deviceCount;
     checkCudaErrors(cudaGetDeviceCount(&deviceCount));
@@ -67,6 +83,7 @@ inline int cudaDeviceInit(int argc, const char **argv)
     return dev;
 }
 
+// Runs a box filter test using the given CUDA device parameters.
 int boxFilterNPPTest(int argc, char **argv)
 {
     try
@@ -76,7 +93,7 @@ int boxFilterNPPTest(int argc, char **argv)
 
         cudaDeviceInit(argc, (const char **)argv);
 
-        if (printfNPPinfo(argc, argv) == false)
+        if (printfNPPinfo() == false)
         {
             exit(EXIT_SUCCESS);
         }
@@ -177,8 +194,6 @@ int boxFilterNPPTest(int argc, char **argv)
 
         nppiFree(oDeviceSrc.data());
         nppiFree(oDeviceDst.data());
-
-        exit(EXIT_SUCCESS);
     }
     catch (npp::Exception &rException)
     {
@@ -198,6 +213,7 @@ int boxFilterNPPTest(int argc, char **argv)
     }
 }
 
+// Execute the NVIDIA example page rank test. This algorithm computes weights of various 
 int pageRankTest(int argc, char **argv)
 {
     const size_t  n = 6, nnz = 10, vertex_numsets = 3, edge_numsets = 1;
@@ -338,38 +354,24 @@ int pageRankTest(int argc, char **argv)
 
     printf("\nDone!\n");
     return EXIT_SUCCESS;
-    
 }
-    
-int main(int argc, char** argv)
-{
-    // read command line arguments
-    int totalThreads = 256;
-    int blockSize = 256;
-    
-    if (argc >= 2) {
-        totalThreads = atoi(argv[1]);
-    }
-    if (argc >= 3) {
-        blockSize = atoi(argv[2]);
-    }
-   
-    int numBlocks = totalThreads/blockSize;
 
-    // validate command line arguments
-    if (totalThreads % blockSize != 0) {
-        ++numBlocks;
-        totalThreads = numBlocks*blockSize;
-        
-        printf("Warning: Total thread count is not evenly divisible by the block size\n");
-        printf("The total number of threads will be rounded up to %d\n", totalThreads);
-    }
-    
+// Executes NVIDIA examples of using the NPP and nvgraph libraries
+// These use the pagerank algorithm as well as the box filter algorithm.
+int main(int argc, char** argv)
+{    
     auto startTime = std::chrono::system_clock::now();
     pageRankTest(argc, argv);
     auto endTime = std::chrono::system_clock::now();
     std::chrono::duration<double> totalTime = endTime-startTime;
     std::cout << "PageRank execution took: " << totalTime.count() << " seconds." << std::endl;
+    
+    
+    startTime = std::chrono::system_clock::now();
+    boxFilterNPPTest(argc, argv);
+    endTime = std::chrono::system_clock::now();
+    totalTime = endTime-startTime;
+    std::cout << "boxFilter execution took: " << totalTime.count() << " seconds." << std::endl;
     
     return 0;
 }
