@@ -187,11 +187,11 @@ bool CreateMemObjects(cl_context context, cl_mem memObjects[3],
                       float *a, float *b)
 {
     memObjects[0] = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                                   sizeof(float) * ARRAY_SIZE, a, NULL);
+                                   sizeof(float) * arraySize, a, NULL);
     memObjects[1] = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                                   sizeof(float) * ARRAY_SIZE, b, NULL);
+                                   sizeof(float) * arraySize, b, NULL);
     memObjects[2] = clCreateBuffer(context, CL_MEM_READ_WRITE,
-                                   sizeof(float) * ARRAY_SIZE, NULL, NULL);
+                                   sizeof(float) * arraySize, NULL, NULL);
 
     if (memObjects[0] == NULL || memObjects[1] == NULL || memObjects[2] == NULL)
     {
@@ -346,7 +346,7 @@ int main(int argc, char** argv)
         // Stop execution here because we shouldn't keep track of how much time it takes to 
         auto endTime = std::chrono::system_clock::now();
         std::chrono::duration<double> totalTime = endTime-startTime;
-        std::cout << "Execution of " << kernalName " took: " << totalTime.count() << " seconds." << std::endl;
+        std::cout << "Execution of " << kernalName << " took: " << totalTime.count() << " seconds." << std::endl;
 
         // Output the result buffer
         for (int i = 0; i < arraySize; i++)
