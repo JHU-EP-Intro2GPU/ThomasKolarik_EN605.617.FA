@@ -183,7 +183,7 @@ cl_program CreateProgram(cl_context context, cl_device_id device, const char* fi
 //  The kernel takes three arguments: result (output), a (input),
 //  and b (input)
 //
-bool CreateMemObjects(cl_context context, cl_mem memObjects[3],
+bool CreateMemObjects(cl_context context, cl_mem memObjects[3], size_t arraySize,
                       float *a, float *b)
 {
     memObjects[0] = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
@@ -234,7 +234,7 @@ int main(int argc, char** argv)
 {
     auto startTime = std::chrono::system_clock::now();
     
-    int arraySize = 1000;
+    size_t arraySize = 1000;
     
     if (argc >= 2) {
         arraySize = atoi(argv[1]);
@@ -293,7 +293,7 @@ int main(int argc, char** argv)
     for (const auto kernalName : KERNALNAMES)
     {
         // Create OpenCL kernel
-        kernel = clCreateKernel(program, kernalName, NULL);
+        kernel = clCreateKernel(program, kernalName.c_str(), NULL);
         if (kernel == NULL)
         {
             std::cerr << "Failed to create kernel" << std::endl;
@@ -301,7 +301,7 @@ int main(int argc, char** argv)
             return 1;
         }
 
-        if (!CreateMemObjects(context, memObjects, a, b))
+        if (!CreateMemObjects(context, memObjects, arraySize, a, b))
         {
             Cleanup(context, commandQueue, program, kernel, memObjects);
             return 1;
