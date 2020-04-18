@@ -54,7 +54,9 @@ __kernel void mod_kernal(__global const float *a,
 
     if (b[gid] != 0.0)
     {
-        result[gid] = a[gid] % b[gid];
+        int tquot = (int) (a[gid] / b[gid]);
+        
+        result[gid] = a[gid] - (tquot * b[gid]);
     }
     else
     {
@@ -69,5 +71,5 @@ __kernel void avg_kernal(__global const float *a,
 {
     int gid = get_global_id(0);
 
-    result[gid] = (a[gid] + b[id]) / 2.0;
+    result[gid] = (a[gid] + b[gid]) / 2.0;
 }
