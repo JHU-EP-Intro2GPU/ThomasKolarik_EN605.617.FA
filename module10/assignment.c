@@ -350,7 +350,7 @@ int main(int argc, char** argv)
 
         // Output the result buffer
         // but limits results so we don't spam the console too much
-        for (int i = 0; i < std::min(5, arraySize); i++)
+        for (size_t i = 0; i < std::min((size_t)5, arraySize); i++)
         {
             std::cout << result[i] << " ";
         }
