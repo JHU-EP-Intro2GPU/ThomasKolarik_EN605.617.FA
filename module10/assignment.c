@@ -349,15 +349,17 @@ int main(int argc, char** argv)
         std::cout << "Execution of " << kernalName << " took: " << totalTime.count() << " seconds." << std::endl;
 
         // Output the result buffer
-        for (int i = 0; i < arraySize; i++)
+        // but limits results so we don't spam the console too much
+        for (int i = 0; i < std::min(5, arraySize); i++)
         {
             std::cout << result[i] << " ";
         }
+            
+        std::cout << std::endl;
     }
     
     Cleanup(context, commandQueue, program, kernel, memObjects);
-    
-    std::cout << std::endl;
+
     std::cout << "Executed program succesfully." << std::endl;
 
     return 0;
