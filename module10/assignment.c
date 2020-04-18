@@ -232,8 +232,6 @@ void Cleanup(cl_context context, cl_command_queue commandQueue,
 //
 int main(int argc, char** argv)
 {
-    auto startTime = std::chrono::system_clock::now();
-    
     size_t arraySize = 1000;
     
     if (argc >= 2) {
@@ -292,6 +290,8 @@ int main(int argc, char** argv)
     
     for (const auto kernalName : KERNALNAMES)
     {
+        auto startTime = std::chrono::system_clock::now();
+    
         // Create OpenCL kernel
         kernel = clCreateKernel(program, kernalName.c_str(), NULL);
         if (kernel == NULL)
