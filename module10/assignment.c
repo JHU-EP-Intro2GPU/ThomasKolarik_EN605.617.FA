@@ -29,9 +29,9 @@ const static std::string KERNALNAMES[] = {
     "add_kernal",
     "sub_kernal",
     "mult_kernal",
-    "or_kernal",
-    "and_kernal",
-    "xor_kernal"};
+    "div_kernal",
+    "mod_kernal",
+    "avg_kernal"};
     
 
 ///

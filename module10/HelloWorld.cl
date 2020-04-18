@@ -28,32 +28,46 @@ __kernel void mult_kernal(__global const float *a,
     result[gid] = a[gid] * b[gid];
 }
 
-// A kernal for "oring" the values integer values of a and b into result.
-__kernel void or_kernal(__global const float *a,
+// A kernal for dividing the values in a and b into result.
+__kernel void div_kernal(__global const float *a,
 						__global const float *b,
 						__global float *result)
 {
     int gid = get_global_id(0);
 
-    result[gid] = static_cast<int>(a[gid]) | static_cast<int>(b[gid]);
+    if (b[gid] != 0.0)
+    {
+        result[gid] = a[gid] / b[gid];
+    }
+    else
+    {
+        result[gid] = 0.0;
+    }
 }
 
-// A kernal for "anding" the values integer values of a and b into result.
-__kernel void and_kernal(__global const float *a,
+// A kernal for doing the modulus of the values in a and b into result.
+__kernel void mod_kernal(__global const float *a,
 						__global const float *b,
 						__global float *result)
 {
     int gid = get_global_id(0);
 
-    result[gid] = static_cast<int>(a[gid]) & static_cast<int>(b[gid]);
+    if (b[gid] != 0.0)
+    {
+        result[gid] = a[gid] % b[gid];
+    }
+    else
+    {
+        result[gid] = 0.0;
+    }
 }
 
-// A kernal for "exclusing oring" the values integer values of a and b into result.
-__kernel void xor_kernal(__global const float *a,
+// A kernal for taking the average value of a and b and putting into result
+__kernel void avg_kernal(__global const float *a,
 						__global const float *b,
 						__global float *result)
 {
     int gid = get_global_id(0);
 
-    result[gid] = static_cast<int>(a[gid]) ^ static_cast<int>(b[gid]);
+    result[gid] = (a[gid] + b[id]) / 2.0;
 }
