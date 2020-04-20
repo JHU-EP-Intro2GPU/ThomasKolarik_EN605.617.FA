@@ -45,7 +45,7 @@ cl_uint outputSignal[outputSignalHeight][outputSignalWidth];
 const unsigned int maskWidth  = 7;
 const unsigned int maskHeight = 7;
 
-cl_uint mask[maskHeight][maskWidth] =
+cl_float mask[maskHeight][maskWidth] =
 {
 	{0.50, 0.50, 0.50, 0.50, 0.50, 0.50, 0.50},
     {0.50, 0.75, 0.75, 0.75, 0.75, 0.75, 0.50},
