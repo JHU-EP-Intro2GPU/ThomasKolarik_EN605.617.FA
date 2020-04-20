@@ -35,12 +35,12 @@
 const unsigned int inputSignalWidth  = 49;
 const unsigned int inputSignalHeight = 49;
 
-cl_uint inputSignal[inputSignalHeight][inputSignalWidth];
+cl_float inputSignal[inputSignalHeight][inputSignalWidth];
 
 const unsigned int outputSignalWidth  = 43;
 const unsigned int outputSignalHeight = 43;
 
-cl_uint outputSignal[outputSignalHeight][outputSignalWidth];
+cl_float outputSignal[outputSignalHeight][outputSignalWidth];
 
 const unsigned int maskWidth  = 7;
 const unsigned int maskHeight = 7;
