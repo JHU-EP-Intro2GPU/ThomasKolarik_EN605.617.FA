@@ -18,6 +18,8 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <chrono>
+#include <random>
 
 #ifdef __APPLE__
 #include <OpenCL/cl.h>
@@ -30,32 +32,28 @@
 #endif
 
 // Constants
-const unsigned int inputSignalWidth  = 8;
-const unsigned int inputSignalHeight = 8;
+const unsigned int inputSignalWidth  = 49;
+const unsigned int inputSignalHeight = 49;
 
-cl_uint inputSignal[inputSignalHeight][inputSignalWidth] =
-{
-	{3, 1, 1, 4, 8, 2, 1, 3},
-	{4, 2, 1, 1, 2, 1, 2, 3},
-	{4, 4, 4, 4, 3, 2, 2, 2},
-	{9, 8, 3, 8, 9, 0, 0, 0},
-	{9, 3, 3, 9, 0, 0, 0, 0},
-	{0, 9, 0, 8, 0, 0, 0, 0},
-	{3, 0, 8, 8, 9, 4, 4, 4},
-	{5, 9, 8, 1, 8, 1, 1, 1}
-};
+cl_uint inputSignal[inputSignalHeight][inputSignalWidth];
 
-const unsigned int outputSignalWidth  = 6;
-const unsigned int outputSignalHeight = 6;
+const unsigned int outputSignalWidth  = 43;
+const unsigned int outputSignalHeight = 43;
 
 cl_uint outputSignal[outputSignalHeight][outputSignalWidth];
 
-const unsigned int maskWidth  = 3;
-const unsigned int maskHeight = 3;
+const unsigned int maskWidth  = 7;
+const unsigned int maskHeight = 7;
 
 cl_uint mask[maskHeight][maskWidth] =
 {
-	{1, 1, 1}, {1, 0, 1}, {1, 1, 1},
+	{0.50, 0.50, 0.50, 0.50, 0.50, 0.50, 0.50},
+    {0.50, 0.75, 0.75, 0.75, 0.75, 0.75, 0.50},
+    {0.50, 0.75, 1.00, 1.00, 1.00, 0.75, 0.50},
+    {0.50, 0.75, 1.00, 0.00, 1.00, 0.75, 0.50},
+    {0.50, 0.75, 1.00, 1.00, 1.00, 0.75, 0.50},
+    {0.50, 0.75, 0.75, 0.75, 0.75, 0.75, 0.50},
+    {0.50, 0.50, 0.50, 0.50, 0.50, 0.50, 0.50}
 };
 
 ///
@@ -86,6 +84,7 @@ void CL_CALLBACK contextCallback(
 //
 int main(int argc, char** argv)
 {
+    auto progStartTime = std::chrono::system_clock::now();
     cl_int errNum;
     cl_uint numPlatforms;
 	cl_uint numDevices;
@@ -215,6 +214,25 @@ int main(int argc, char** argv)
 		"convolve",
 		&errNum);
 	checkErr(errNum, "clCreateKernel");
+    
+    // Create the initial signal using a random seed supplied by the user
+    // or default to 12345.
+    unsigned seed = 12345;
+    
+    if (argc >= 2) {
+        seed = atoi(argv[1]);
+    }
+    
+    std::default_random_engine gen(seed);
+    std::uniform_real_distribution<float> dist(0,10);
+    
+    for (unsigned int i = 0; i < inputSignalHeight; ++i)
+    {
+        for (unsigned int j = 0; j < inputSignalHeight; ++j)
+        {
+            inputSignal[i][j] = dist(gen);
+        }
+    }
 
 	// Now allocate buffers
 	inputSignalBuffer = clCreateBuffer(
@@ -260,6 +278,8 @@ int main(int argc, char** argv)
     const size_t localWorkSize[2]  = { 1, 1 };
 
     // Queue the kernel up for execution across the array
+    auto convStartTime = std::chrono::system_clock::now();
+    
     errNum = clEnqueueNDRangeKernel(
 		queue, 
 		kernel, 
@@ -283,6 +303,13 @@ int main(int argc, char** argv)
 		NULL, 
 		NULL);
 	checkErr(errNum, "clEnqueueReadBuffer");
+    
+    auto convEndTime = std::chrono::system_clock::now();
+    std::chrono::duration<double> covTotalTime = convEndTime-convStartTime;
+
+    auto progEndTime = std::chrono::system_clock::now();
+    std::chrono::duration<double> progTotalTime = progEndTime-progStartTime;
+    std::cout << "Execution of entire program took: " << progTotalTime.count() << " seconds. Covolution time was " << covTotalTime.count() << " seconds." << std::endl;
 
     // Output the result buffer
     for (int y = 0; y < outputSignalHeight; y++)
