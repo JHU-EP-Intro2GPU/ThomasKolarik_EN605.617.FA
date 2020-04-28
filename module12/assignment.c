@@ -53,6 +53,8 @@ int main(int argc, char** argv)
     std::vector<cl_command_queue> queues;
     std::vector<cl_mem> subbuffers;
     
+    int subbufferSize = SUB_BUFFER_SIZE;
+    
     std::vector<int> inputValues;
     int * inputArray;
     int * outputArray;
@@ -228,8 +230,8 @@ int main(int argc, char** argv)
     {
         cl_buffer_region region = 
             {
-                SUB_BUFFER_SIZE * i * sizeof(int), 
-                SUB_BUFFER_SIZE * sizeof(int)
+                subbufferSize * i * sizeof(int), 
+                subbufferSize * sizeof(int)
             };
         cl_mem subbuffer = clCreateSubBuffer(
             bufferInput,
@@ -268,7 +270,7 @@ int main(int argc, char** argv)
 
         errNum = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *)&subbuffers[i]);
         errNum = clSetKernelArg(kernel, 1, sizeof(cl_mem), (void *)&bufferOutput);
-        errNum = clSetKernelArg(kernel, 2, sizeof(cl_uint), &SUB_BUFFER_SIZE);
+        errNum = clSetKernelArg(kernel, 2, sizeof(cl_uint), &subbufferSize);
         checkErr(errNum, "clSetKernelArg(average)");
 
         kernels.push_back(kernel);
