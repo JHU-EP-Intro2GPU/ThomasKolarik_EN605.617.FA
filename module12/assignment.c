@@ -232,7 +232,7 @@ int main(int argc, char** argv)
                 SUB_BUFFER_SIZE * sizeof(int)
             };
         cl_mem subbuffer = clCreateSubBuffer(
-            buffer,
+            bufferInput,
             CL_MEM_READ_ONLY,
             CL_BUFFER_CREATE_TYPE_REGION,
             &region,
@@ -268,7 +268,7 @@ int main(int argc, char** argv)
 
         errNum = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *)&subbuffers[i]);
         errNum = clSetKernelArg(kernel, 1, sizeof(cl_mem), (void *)&bufferOutput);
-        errNum = clSetKernelArg(kernel, 2, sizeof(int), SUB_BUFFER_SIZE);
+        errNum = clSetKernelArg(kernel, 2, sizeof(cl_uint), &SUB_BUFFER_SIZE);
         checkErr(errNum, "clSetKernelArg(average)");
 
         kernels.push_back(kernel);
@@ -277,7 +277,7 @@ int main(int argc, char** argv)
     // Write input data
     errNum = clEnqueueWriteBuffer(
         queues[0],
-        inputBuffer,
+        bufferInput,
         CL_TRUE,
         0,
         sizeof(int) * NUM_BUFFER_ELEMENTS * numDevices,

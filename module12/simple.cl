@@ -3,7 +3,7 @@
 //    This is a simple example demonstrating buffers and sub-buffer usage
 
 # Takes the average of the values within the subuffer and puts the result into the outputbuffer.
-__kernel void average(__global * subBuffer, __global * outputBuffer, int size)
+__kernel void average(__global * subBuffer, __global * outputBuffer, const int size)
 {
 	size_t id = get_global_id(0);
     
