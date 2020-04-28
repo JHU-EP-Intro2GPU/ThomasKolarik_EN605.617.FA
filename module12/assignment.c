@@ -268,7 +268,7 @@ int main(int argc, char** argv)
 
         errNum = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *)&subbuffers[i]);
         errNum = clSetKernelArg(kernel, 1, sizeof(cl_mem), (void *)&bufferOutput);
-        errNum = clSetKernelArg(kernel, 1, sizeof(int), SUB_BUFFER_SIZE);
+        errNum = clSetKernelArg(kernel, 2, sizeof(int), SUB_BUFFER_SIZE);
         checkErr(errNum, "clSetKernelArg(average)");
 
         kernels.push_back(kernel);
