@@ -74,7 +74,7 @@ int main(int argc, char** argv)
             int numVals = 0;
             buffer >> numVals;
             
-            for (i < startI + numVals && i < argc; ++i)
+            for (;i < startI + numVals && i < argc; ++i)
             {
                 inputValues.push_back(std::stoi(std::string(argv[i])));
             }
@@ -191,7 +191,7 @@ int main(int argc, char** argv)
 
     // create buffers and sub-buffers
     inputBuffer = new int[NUM_BUFFER_ELEMENTS];
-    outputBuffer = new int[NUM_BUFFER_ELEMENTS;
+    outputBuffer = new int[NUM_BUFFER_ELEMENTS];
     
     for (unsigned int i = 0; i < NUM_BUFFER_ELEMENTS; i++)
     {
@@ -224,7 +224,7 @@ int main(int argc, char** argv)
                 SUB_BUFFER_SIZE * sizeof(int)
             };
         cl_mem subbuffer = clCreateSubBuffer(
-            buffers[0],
+            buffer,
             CL_MEM_READ_ONLY,
             CL_BUFFER_CREATE_TYPE_REGION,
             &region,
