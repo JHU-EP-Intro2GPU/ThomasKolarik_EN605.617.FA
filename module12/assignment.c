@@ -13,6 +13,7 @@
 //    This is a (very) simple raytracer that is intended to demonstrate 
 //    using OpenCL buffers.
 
+#include <chrono>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -42,6 +43,8 @@ checkErr(cl_int err, const char * name)
 //
 int main(int argc, char** argv)
 {
+    auto progStartTime = std::chrono::system_clock::now();
+    
     cl_int errNum;
     cl_uint numPlatforms;
     cl_uint numDevices;
@@ -344,6 +347,10 @@ int main(int argc, char** argv)
     std::cout << std::endl;
 
     std::cout << "Program completed successfully" << std::endl;
+    
+    auto progEndTime = std::chrono::system_clock::now();
+    std::chrono::duration<double> progTotalTime = progEndTime-progStartTime;
+    std::cout << "Execution of entire program took: " << progTotalTime.count() << " seconds." << std::endl;
 
     return 0;
 }
