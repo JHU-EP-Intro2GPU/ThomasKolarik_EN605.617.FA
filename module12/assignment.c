@@ -63,6 +63,7 @@ int main(int argc, char** argv)
 
     std::cout << "Simple buffer and sub-buffer Example" << std::endl;
     
+    // Read in all of the input values.
     for (int i = 1; i < argc; i++)
     {
         std::string input(argv[i]);
@@ -72,10 +73,14 @@ int main(int argc, char** argv)
             input = std::string(argv[++i]);
             std::istringstream buffer(input);
             
-            int startI = i;
             int numVals = 0;
             buffer >> numVals;
             
+            // Skip to the first value
+            ++i;
+            int startI = i;
+            
+            // Read in the number of floating point values
             for (;i < startI + numVals && i < argc; ++i)
             {
                 inputValues.push_back(std::stof(std::string(argv[i])));
@@ -100,6 +105,7 @@ int main(int argc, char** argv)
 
     std::cout << "Number of platforms: \t" << numPlatforms << std::endl; 
 
+    // Do the initial program setup
     errNum = clGetPlatformIDs(numPlatforms, platformIDs, NULL);
     checkErr( 
        (errNum != CL_SUCCESS) ? errNum : (numPlatforms <= 0 ? -1 : CL_SUCCESS), 
@@ -195,6 +201,9 @@ int main(int argc, char** argv)
     inputArray = new float[NUM_BUFFER_ELEMENTS];
     outputArray = new float[NUM_BUFFER_ELEMENTS];
     
+    // Populate the input arraty with either input values order
+    // a simple counting pattern. If there weren't enough input elements
+    // to fill the buffer then fill the rest with the counting pattern.
     for (unsigned int i = 0; i < NUM_BUFFER_ELEMENTS; i++)
     {
         if (i < inputValues.size())
@@ -225,6 +234,7 @@ int main(int argc, char** argv)
         &errNum);
     checkErr(errNum, "clCreateBuffer");
     
+    // Create a number of subbuffers from the above buffer data based off the subbuffer size.
     int numSubbuffers = NUM_BUFFER_ELEMENTS / subbufferSize;
 
     // now for all devices other than the first create a sub-buffer
@@ -246,6 +256,7 @@ int main(int argc, char** argv)
         subbuffers.push_back(subbuffer);
     }
 
+    // Create a queue using all of the subbuffer data
     for (unsigned int i = 0; i < numSubbuffers; i++)
     {
         cl_command_queue queue = 
@@ -264,6 +275,7 @@ int main(int argc, char** argv)
             &errNum);
         checkErr(errNum, "clCreateKernel(average)");
 
+        // Setup the arguments for the kernal
         errNum = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *)&subbuffers[i]);
         errNum = clSetKernelArg(kernel, 1, sizeof(cl_mem), (void *)&bufferOutput);
         errNum = clSetKernelArg(kernel, 2, sizeof(cl_uint), &i);
@@ -286,7 +298,7 @@ int main(int argc, char** argv)
         NULL);
 
     std::vector<cl_event> events;
-    // call kernel for each device
+    // call kernel for each subbuffer
     for (unsigned int i = 0; i < queues.size(); i++)
     {
         cl_event event;
