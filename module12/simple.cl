@@ -16,5 +16,5 @@ __kernel void average(constant __global float * subBuffer, __global float * outp
     
     average = average / size;
     
-	buffer[id] = average;
+	outputBuffer[id] = average;
 }
