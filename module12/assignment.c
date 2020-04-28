@@ -233,7 +233,7 @@ int main(int argc, char** argv)
         cl_buffer_region region = 
             {
                 subbufferSize * i * sizeof(float), 
-                std::min(subbufferSize, i - subbufferSize)  * sizeof(float)
+                subbufferSize * sizeof(float)
             };
         cl_mem subbuffer = clCreateSubBuffer(
             bufferInput,
@@ -266,7 +266,8 @@ int main(int argc, char** argv)
 
         errNum = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *)&subbuffers[i]);
         errNum = clSetKernelArg(kernel, 1, sizeof(cl_mem), (void *)&bufferOutput);
-        errNum = clSetKernelArg(kernel, 2, sizeof(cl_uint), &subbufferSize);
+        errNum = clSetKernelArg(kernel, 2, sizeof(cl_uint), &i);
+        errNum = clSetKernelArg(kernel, 3, sizeof(cl_uint), &subbufferSize);
         checkErr(errNum, "clSetKernelArg(average)");
 
         kernels.push_back(kernel);
