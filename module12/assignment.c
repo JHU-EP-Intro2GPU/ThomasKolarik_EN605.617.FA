@@ -25,7 +25,6 @@
 #define DEFAULT_USE_MAP false
 
 #define NUM_BUFFER_ELEMENTS 16
-#define SUB_BUFFER_SIZE     2
 
 // Function to check and handle OpenCL errors
 inline void 
@@ -54,8 +53,8 @@ int main(int argc, char** argv)
     std::vector<cl_mem> subbuffers;
     
     std::vector<int> inputValues;
-    int * inputBuffer;
-    int * outputBuffer;
+    int * inputArray;
+    int * outputArray;
 
     int platform = DEFAULT_PLATFORM; 
 
@@ -190,30 +189,47 @@ int main(int argc, char** argv)
     }
 
     // create buffers and sub-buffers
-    inputBuffer = new int[NUM_BUFFER_ELEMENTS];
-    outputBuffer = new int[NUM_BUFFER_ELEMENTS];
+    inputArray = new int[NUM_BUFFER_ELEMENTS];
+    outputArray = new int[NUM_BUFFER_ELEMENTS];
     
     for (unsigned int i = 0; i < NUM_BUFFER_ELEMENTS; i++)
     {
         if (i < inputValues.size())
         {
-            inputBuffer[i] = inputValues[i];
+            inputArray[i] = inputValues[i];
         }
         else
         {
-            inputBuffer[i] = i;
+            inputArray[i] = i;
         }
     }
 
     // create a single buffer to cover all the input data
-    cl_mem buffer = clCreateBuffer(
+    cl_mem bufferInput = clCreateBuffer(
         context,
         CL_MEM_READ_WRITE,
         sizeof(int) * NUM_BUFFER_ELEMENTS,
         NULL,
         &errNum);
     checkErr(errNum, "clCreateBuffer");
-    subbuffers.push_back(buffer);
+    
+    // create a single buffer to cover all the output data
+    cl_mem bufferOutput = clCreateBuffer(
+        context,
+        CL_MEM_READ_WRITE,
+        sizeof(int) * NUM_BUFFER_ELEMENTS,
+        NULL,
+        &errNum);
+    checkErr(errNum, "clCreateBuffer");
+    
+    // create a single buffer to cover all the input data
+    cl_mem inputArray = clCreateBuffer(
+        context,
+        CL_MEM_READ_WRITE,
+        sizeof(int) * NUM_BUFFER_ELEMENTS,
+        NULL,
+        &errNum);
+    checkErr(errNum, "clCreateBuffer");
 
     // now for all devices other than the first create a sub-buffer
     for (unsigned int i = 1; i < NUM_BUFFER_ELEMENTS; i++)
@@ -259,6 +275,7 @@ int main(int argc, char** argv)
         checkErr(errNum, "clCreateKernel(average)");
 
         errNum = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *)&subbuffers[i]);
+        errNum = clSetKernelArg(kernel, 1, sizeof(cl_mem), (void *)&bufferOutput);
         checkErr(errNum, "clSetKernelArg(average)");
 
         kernels.push_back(kernel);
@@ -271,7 +288,7 @@ int main(int argc, char** argv)
         CL_TRUE,
         0,
         sizeof(int) * NUM_BUFFER_ELEMENTS * numDevices,
-        (void*)input,
+        (void*)inputArray,
         0,
         NULL,
         NULL);
@@ -309,7 +326,7 @@ int main(int argc, char** argv)
         CL_TRUE,
         0,
         sizeof(int) * NUM_BUFFER_ELEMENTS,
-        (void*),
+        (void*)outputArray,
         0,
         NULL,
         NULL);
@@ -317,7 +334,7 @@ int main(int argc, char** argv)
     // Display output in rows
     for (unsigned elems = 0; elems < NUM_BUFFER_ELEMENTS; elems++)
     {
-        std::cout << " " << outputBuffer[elems];
+        std::cout << " " << outputArray[elems];
     }
 
     std::cout << std::endl;
