@@ -25,6 +25,7 @@
 #define DEFAULT_USE_MAP false
 
 #define NUM_BUFFER_ELEMENTS 16
+#define SUB_BUFFER_SIZE     2
 
 // Function to check and handle OpenCL errors
 inline void 
@@ -221,15 +222,6 @@ int main(int argc, char** argv)
         NULL,
         &errNum);
     checkErr(errNum, "clCreateBuffer");
-    
-    // create a single buffer to cover all the input data
-    cl_mem inputArray = clCreateBuffer(
-        context,
-        CL_MEM_READ_WRITE,
-        sizeof(int) * NUM_BUFFER_ELEMENTS,
-        NULL,
-        &errNum);
-    checkErr(errNum, "clCreateBuffer");
 
     // now for all devices other than the first create a sub-buffer
     for (unsigned int i = 1; i < NUM_BUFFER_ELEMENTS; i++)
@@ -276,6 +268,7 @@ int main(int argc, char** argv)
 
         errNum = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *)&subbuffers[i]);
         errNum = clSetKernelArg(kernel, 1, sizeof(cl_mem), (void *)&bufferOutput);
+        errNum = clSetKernelArg(kernel, 1, sizeof(int), SUB_BUFFER_SIZE);
         checkErr(errNum, "clSetKernelArg(average)");
 
         kernels.push_back(kernel);
@@ -284,7 +277,7 @@ int main(int argc, char** argv)
     // Write input data
     errNum = clEnqueueWriteBuffer(
         queues[0],
-        buffer,
+        inputBuffer,
         CL_TRUE,
         0,
         sizeof(int) * NUM_BUFFER_ELEMENTS * numDevices,
@@ -322,7 +315,7 @@ int main(int argc, char** argv)
     // Read back computed data
     clEnqueueReadBuffer(
         queues[0],
-        buffer,
+        bufferOutput,
         CL_TRUE,
         0,
         sizeof(int) * NUM_BUFFER_ELEMENTS,
