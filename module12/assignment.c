@@ -210,9 +210,9 @@ int main(int argc, char** argv)
     // create a single buffer to cover all the input data
     cl_mem bufferInput = clCreateBuffer(
         context,
-        CL_MEM_READ_WRITE,
+        CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
         sizeof(float) * NUM_BUFFER_ELEMENTS,
-        NULL,
+        static_cast<void*>(inputArray),
         &errNum);
     checkErr(errNum, "clCreateBuffer");
     
@@ -224,14 +224,16 @@ int main(int argc, char** argv)
         NULL,
         &errNum);
     checkErr(errNum, "clCreateBuffer");
+    
+    int numSubbuffers = NUM_BUFFER_ELEMENTS / subbufferSize;
 
     // now for all devices other than the first create a sub-buffer
-    for (unsigned int i = 1; i < NUM_BUFFER_ELEMENTS; i++)
+    for (int i = 0; i < numSubbuffers; i++)
     {
         cl_buffer_region region = 
             {
                 subbufferSize * i * sizeof(float), 
-                subbufferSize * sizeof(float)
+                std::min(subbufferSize, i - subbufferSize)  * sizeof(float)
             };
         cl_mem subbuffer = clCreateSubBuffer(
             bufferInput,
@@ -244,14 +246,8 @@ int main(int argc, char** argv)
         subbuffers.push_back(subbuffer);
     }
 
-    for (unsigned int i = 0; i < NUM_BUFFER_ELEMENTS; ++i)
+    for (unsigned int i = 0; i < numSubbuffers; i++)
     {
-        // Create command queues
-        InfoDevice<cl_device_type>::display(
-            deviceIDs[0], 
-            CL_DEVICE_TYPE, 
-            "CL_DEVICE_TYPE");
-
         cl_command_queue queue = 
             clCreateCommandQueue(
                 context,
@@ -268,21 +264,21 @@ int main(int argc, char** argv)
             &errNum);
         checkErr(errNum, "clCreateKernel(average)");
 
-        errNum = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *)&subbuffers[i]);
+        errNum = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *)&subbuffers);
         errNum = clSetKernelArg(kernel, 1, sizeof(cl_mem), (void *)&bufferOutput);
         errNum = clSetKernelArg(kernel, 2, sizeof(cl_uint), &subbufferSize);
         checkErr(errNum, "clSetKernelArg(average)");
 
         kernels.push_back(kernel);
     }
-
+        
     // Write input data
     errNum = clEnqueueWriteBuffer(
         queues[0],
         bufferInput,
         CL_TRUE,
         0,
-        sizeof(float) * NUM_BUFFER_ELEMENTS * numDevices,
+        sizeof(float) * NUM_BUFFER_ELEMENTS,
         (void*)inputArray,
         0,
         NULL,
@@ -294,7 +290,7 @@ int main(int argc, char** argv)
     {
         cl_event event;
 
-        size_t gWI = NUM_BUFFER_ELEMENTS;
+        size_t gWI = SUB_BUFFER_SIZE;
 
         errNum = clEnqueueNDRangeKernel(
             queues[i], 
