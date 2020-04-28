@@ -55,9 +55,9 @@ int main(int argc, char** argv)
     
     int subbufferSize = SUB_BUFFER_SIZE;
     
-    std::vector<int> inputValues;
-    int * inputArray;
-    int * outputArray;
+    std::vector<float> inputValues;
+    float * inputArray;
+    float * outputArray;
 
     int platform = DEFAULT_PLATFORM; 
 
@@ -78,7 +78,7 @@ int main(int argc, char** argv)
             
             for (;i < startI + numVals && i < argc; ++i)
             {
-                inputValues.push_back(std::stoi(std::string(argv[i])));
+                inputValues.push_back(std::stof(std::string(argv[i])));
             }
         }
         else
@@ -192,8 +192,8 @@ int main(int argc, char** argv)
     }
 
     // create buffers and sub-buffers
-    inputArray = new int[NUM_BUFFER_ELEMENTS];
-    outputArray = new int[NUM_BUFFER_ELEMENTS];
+    inputArray = new float[NUM_BUFFER_ELEMENTS];
+    outputArray = new float[NUM_BUFFER_ELEMENTS];
     
     for (unsigned int i = 0; i < NUM_BUFFER_ELEMENTS; i++)
     {
@@ -211,7 +211,7 @@ int main(int argc, char** argv)
     cl_mem bufferInput = clCreateBuffer(
         context,
         CL_MEM_READ_WRITE,
-        sizeof(int) * NUM_BUFFER_ELEMENTS,
+        sizeof(float) * NUM_BUFFER_ELEMENTS,
         NULL,
         &errNum);
     checkErr(errNum, "clCreateBuffer");
@@ -220,7 +220,7 @@ int main(int argc, char** argv)
     cl_mem bufferOutput = clCreateBuffer(
         context,
         CL_MEM_READ_WRITE,
-        sizeof(int) * NUM_BUFFER_ELEMENTS,
+        sizeof(float) * NUM_BUFFER_ELEMENTS,
         NULL,
         &errNum);
     checkErr(errNum, "clCreateBuffer");
@@ -230,8 +230,8 @@ int main(int argc, char** argv)
     {
         cl_buffer_region region = 
             {
-                subbufferSize * i * sizeof(int), 
-                subbufferSize * sizeof(int)
+                subbufferSize * i * sizeof(float), 
+                subbufferSize * sizeof(float)
             };
         cl_mem subbuffer = clCreateSubBuffer(
             bufferInput,
@@ -282,7 +282,7 @@ int main(int argc, char** argv)
         bufferInput,
         CL_TRUE,
         0,
-        sizeof(int) * NUM_BUFFER_ELEMENTS * numDevices,
+        sizeof(float) * NUM_BUFFER_ELEMENTS * numDevices,
         (void*)inputArray,
         0,
         NULL,
@@ -320,7 +320,7 @@ int main(int argc, char** argv)
         bufferOutput,
         CL_TRUE,
         0,
-        sizeof(int) * NUM_BUFFER_ELEMENTS,
+        sizeof(float) * NUM_BUFFER_ELEMENTS,
         (void*)outputArray,
         0,
         NULL,
