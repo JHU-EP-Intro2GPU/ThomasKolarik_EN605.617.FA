@@ -1,25 +1,75 @@
-//
-// Book:      OpenCL(R) Programming Guide
-// Authors:   Aaftab Munshi, Benedict Gaster, Dan Ginsburg, Timothy Mattson
-// ISBN-10:   ??????????
-// ISBN-13:   ?????????????
-// Publisher: Addison-Wesley Professional
-// URLs:      http://safari.informit.com/??????????
-//            http://www.????????.com
-//
-
-// simple.cl
-//
-//    This is a simple example demonstrating buffers and sub-buffer usage
-
-__kernel void square(__global * buffer)
+// A kernal for adding the values in a and b together into result.
+__kernel void add(__global const float *a,
+						__global const float *b,
+						__global float *result)
 {
-	size_t id = get_global_id(0);
-	buffer[id] = buffer[id] * buffer[id];
+    int gid = get_global_id(0);
+
+    result[gid] = a[gid] + b[gid];
 }
 
-__kernel void cube(__global * buffer)
+// A kernal for subtracting the values in a and b into result.
+__kernel void sub(__global const float *a,
+						__global const float *b,
+						__global float *result)
 {
-	size_t id = get_global_id(0);
-	buffer[id] = buffer[id] * buffer[id] * buffer[id];
+    int gid = get_global_id(0);
+
+    result[gid] = a[gid] - b[gid];
+}
+
+// A kernal for multiplying the values in a and b into result.
+__kernel void mult(__global const float *a,
+						__global const float *b,
+						__global float *result)
+{
+    int gid = get_global_id(0);
+
+    result[gid] = a[gid] * b[gid];
+}
+
+// A kernal for dividing the values in a and b into result.
+__kernel void div(__global const float *a,
+						__global const float *b,
+						__global float *result)
+{
+    int gid = get_global_id(0);
+
+    if (b[gid] != 0.0)
+    {
+        result[gid] = a[gid] / b[gid];
+    }
+    else
+    {
+        result[gid] = 0.0;
+    }
+}
+
+// A kernal for doing the modulus of the values in a and b into result.
+__kernel void mod(__global const float *a,
+						__global const float *b,
+						__global float *result)
+{
+    int gid = get_global_id(0);
+
+    if (b[gid] != 0.0)
+    {
+        int tquot = (int) (a[gid] / b[gid]);
+        
+        result[gid] = a[gid] - (tquot * b[gid]);
+    }
+    else
+    {
+        result[gid] = 0.0;
+    }
+}
+
+// A kernal for taking the average value of a and b and putting into result
+__kernel void avg(__global const float *a,
+						__global const float *b,
+						__global float *result)
+{
+    int gid = get_global_id(0);
+
+    result[gid] = (a[gid] + b[gid]) / 2.0;
 }
