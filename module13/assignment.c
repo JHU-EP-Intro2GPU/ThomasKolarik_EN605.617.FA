@@ -47,6 +47,7 @@ checkErr(cl_int err, const char * name)
 //
 int main(int argc, char** argv)
 {
+    auto startTime = std::chrono::system_clock::now();
     cl_int errNum;
     cl_uint numPlatforms;
     cl_uint numDevices;
@@ -80,8 +81,10 @@ int main(int argc, char** argv)
         {
             std::cout << kernalName << " is not a valid kernal name!" << std::endl;
         }
-        
-        kernalNames.push_back(kernalName);
+        else
+        {
+            kernalNames.push_back(kernalName);
+        }
     }
     
     if (kernalNames.size() == 0)
@@ -113,8 +116,6 @@ int main(int argc, char** argv)
     platformIDs = (cl_platform_id *)alloca(
             sizeof(cl_platform_id) * numPlatforms);
 
-    std::cout << "Number of platforms: \t" << numPlatforms << std::endl; 
-
     errNum = clGetPlatformIDs(numPlatforms, platformIDs, NULL);
     checkErr( 
        (errNum != CL_SUCCESS) ? errNum : (numPlatforms <= 0 ? -1 : CL_SUCCESS), 
@@ -131,10 +132,6 @@ int main(int argc, char** argv)
     size_t length = srcProg.length();
 
     deviceIDs = NULL;
-    DisplayPlatformInfo(
-        platformIDs[platform], 
-        CL_PLATFORM_VENDOR, 
-        "CL_PLATFORM_VENDOR");
 
     errNum = clGetDeviceIDs(
         platformIDs[platform], 
@@ -192,23 +189,6 @@ int main(int argc, char** argv)
             "-I.",
             NULL,
             NULL);
-     
-        if (errNum != CL_SUCCESS) 
-        {
-            // Determine the reason for the error
-            char buildLog0[16384];
-            clGetProgramBuildInfo(
-                programs[i], 
-                deviceIDs[0], 
-                CL_PROGRAM_BUILD_LOG,
-                sizeof(buildLog0), 
-                buildLog0, 
-                NULL);
-
-                std::cerr << "Error in OpenCL C source: " << std::endl;
-                std::cerr << buildLog0;
-                checkErr(errNum, "clBuildProgram");
-        }
         
         // create input output buffers0
         inputs0[i] = new float[NUM_BUFFER_ELEMENTS * numDevices];
@@ -340,8 +320,10 @@ int main(int argc, char** argv)
         }
         std::cout << std::endl;
     }
- 
-    std::cout << "Program completed successfully" << std::endl;
+    
+    auto endTime = std::chrono::system_clock::now();
+    std::chrono::duration<double> totalTime = endTime-startTime;
+    std::cout << "Execution took: " << totalTime.count() << " seconds." << std::endl;
 
     return 0;
 }
