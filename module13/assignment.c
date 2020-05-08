@@ -234,11 +234,6 @@ int main(int argc, char** argv)
         checkErr(errNum, "clCreateBuffer");
 
         // Create command queues
-        InfoDevice<cl_device_type>::display(
-            deviceIDs[0], 
-            CL_DEVICE_TYPE, 
-            "CL_DEVICE_TYPE");
-
          queues[i] =  
             clCreateCommandQueue(
             contexts[i],
