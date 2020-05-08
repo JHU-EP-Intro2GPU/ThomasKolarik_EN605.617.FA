@@ -9,6 +9,8 @@
 //            http://www.openclprogrammingguide.com
 //
 
+#include <algorithm>
+#include <cctype>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -18,6 +20,7 @@
 
 #include "info.hpp"
 
+#define DEFAULT_PLATFORM 0
 #define NUM_BUFFER_ELEMENTS 16
 
 const std::unordered_set<std::string> validKernals = {
@@ -53,7 +56,7 @@ int main(int argc, char** argv)
 	
 	// Make all of these vector in order to handle any number of input commands
     std::vector<cl_context> contexts;
-    std::vector<cl_program. programs;
+    std::vector<cl_program> programs;
     std::vector<int *> inputOutputs;	
 	std::vector<std::string> kernalNames;
 	std::vector<cl_mem> buffers;
@@ -67,7 +70,7 @@ int main(int argc, char** argv)
 		
 		std::string kernalName(argv[i]);
 		
-		std::transform(kernalName.begin(), kernalName.end(), kernalName.begin(), std::toupper);
+		std::transform(kernalName.begin(), kernalName.end(), kernalName.begin(), std::tolower);
 		
 		if (validKernals.find(kernalName) == validKernals.end())
 		{
