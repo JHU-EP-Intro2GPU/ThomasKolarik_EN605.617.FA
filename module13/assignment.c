@@ -157,6 +157,7 @@ int main(int argc, char** argv)
 	
 	for (size_t i = 0; i < kernalNames.size(); ++i)
 	{
+		const auto & kernalName = kernalNames[i];
 	    contexts[i] = clCreateContext(
 			contextProperties, 
 			numDevices,
@@ -237,7 +238,7 @@ int main(int argc, char** argv)
 		 &errNum);
 		checkErr(errNum, "clCreateKernel(" + kernalName + ")");
 
-		errNum = clSetKernelArg(kernals[i], 0, sizeof(cl_mem), (void *)&buffer[i]);
+		errNum = clSetKernelArg(kernals[i], 0, sizeof(cl_mem), (void *)&buffers[i]);
 		checkErr(errNum, "clSetKernelArg(" + kernalName + ")");
 	 
 		// Write input data
@@ -263,8 +264,7 @@ int main(int argc, char** argv)
 		  (const size_t*)NULL, 
 		  0, 
 		  0, 
-		  &events[i]);
-		  &events[i]); 
+		  &events[i],);
 	}	  
 	
  	//Wait for the last queue to complete before continuing on queue 0
