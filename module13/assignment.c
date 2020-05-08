@@ -234,17 +234,17 @@ int main(int argc, char** argv)
 	 
 		kernals[i] = clCreateKernel(
 		 programs[i],
-		 kernalName,
+		 kernalName.c_str(),
 		 &errNum);
-		checkErr(errNum, "clCreateKernel(" + kernalName + ")");
+		checkErr(errNum, ("clCreateKernel(" + kernalName + ")").c_str());
 
 		errNum = clSetKernelArg(kernals[i], 0, sizeof(cl_mem), (void *)&buffers[i]);
-		checkErr(errNum, "clSetKernelArg(" + kernalName + ")");
+		checkErr(errNum, ("clSetKernelArg(" + kernalName + ")").c_str());
 	 
 		// Write input data
 		errNum = clEnqueueWriteBuffer(
 		  queues[i],
-		  buffer[i],
+		  buffers[i],
 		  CL_TRUE,
 		  0,
 		  sizeof(int) * NUM_BUFFER_ELEMENTS * numDevices,
@@ -264,7 +264,7 @@ int main(int argc, char** argv)
 		  (const size_t*)NULL, 
 		  0, 
 		  0, 
-		  &events[i],);
+		  &events[i]);
 	}	  
 	
  	//Wait for the last queue to complete before continuing on queue 0
