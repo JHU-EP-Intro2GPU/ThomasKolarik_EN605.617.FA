@@ -96,7 +96,7 @@ int main(int argc, char** argv)
     programs.resize(kernalNames.size());
     inputs0.resize(kernalNames.size());
     inputs1.resize(kernalNames.size());
-    outputs.resize(kernalNames.sieze());
+    outputs.resize(kernalNames.size());
     buffers0.resize(kernalNames.size());
     buffers1.resize(kernalNames.size());
     outputBuffer.resize(kernalNames.size());
@@ -211,23 +211,25 @@ int main(int argc, char** argv)
         }
         
         // create input output buffers0
-        inputs0[i] = new int[NUM_BUFFER_ELEMENTS * numDevices];
+        inputs0[i] = new float[NUM_BUFFER_ELEMENTS * numDevices];
         for (unsigned int j = 0; j < NUM_BUFFER_ELEMENTS * numDevices; ++j)
         {
             inputs0[i][j] = j;
         }
         
-        inputs1[i] = new int[NUM_BUFFER_ELEMENTS * numDevices];
+        inputs1[i] = new float[NUM_BUFFER_ELEMENTS * numDevices];
         for (unsigned int j = 0; j < NUM_BUFFER_ELEMENTS * numDevices; ++j)
         {
             inputs1[i][j] = 2 * j + i;
         }
+        
+        outputs[i] = new float[NUM_BUFFER_ELEMENTS * numDevices];
 
         // create a single buffer to cover all the input data
         buffers0[i] = clCreateBuffer(
             contexts[i],
             CL_MEM_READ_WRITE,
-            sizeof(int) * NUM_BUFFER_ELEMENTS * numDevices,
+            sizeof(float) * NUM_BUFFER_ELEMENTS * numDevices,
             NULL,
             &errNum);
         checkErr(errNum, "clCreateBuffer");
@@ -236,7 +238,7 @@ int main(int argc, char** argv)
         buffers1[i] = clCreateBuffer(
             contexts[i],
             CL_MEM_READ_WRITE,
-            sizeof(int) * NUM_BUFFER_ELEMENTS * numDevices,
+            sizeof(float) * NUM_BUFFER_ELEMENTS * numDevices,
             NULL,
             &errNum);
         checkErr(errNum, "clCreateBuffer");
@@ -245,7 +247,7 @@ int main(int argc, char** argv)
         outputBuffer[i] = clCreateBuffer(
             contexts[i],
             CL_MEM_READ_WRITE,
-            sizeof(int) * NUM_BUFFER_ELEMENTS * numDevices,
+            sizeof(float) * NUM_BUFFER_ELEMENTS * numDevices,
             NULL,
             &errNum);
         checkErr(errNum, "clCreateBuffer");
@@ -280,7 +282,7 @@ int main(int argc, char** argv)
           buffers0[i],
           CL_TRUE,
           0,
-          sizeof(int) * NUM_BUFFER_ELEMENTS * numDevices,
+          sizeof(float) * NUM_BUFFER_ELEMENTS * numDevices,
           (void*)inputs0[i],
           0,
           NULL,
@@ -292,7 +294,7 @@ int main(int argc, char** argv)
           buffers1[i],
           CL_TRUE,
           0,
-          sizeof(int) * NUM_BUFFER_ELEMENTS * numDevices,
+          sizeof(float) * NUM_BUFFER_ELEMENTS * numDevices,
           (void*)inputs1[i],
           0,
           NULL,
