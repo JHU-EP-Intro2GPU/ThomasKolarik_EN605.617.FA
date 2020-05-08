@@ -274,6 +274,7 @@ int main(int argc, char** argv)
 
         errNum = clSetKernelArg(kernals[i], 0, sizeof(cl_mem), (void *)&buffers0[i]);
         errNum = clSetKernelArg(kernals[i], 1, sizeof(cl_mem), (void *)&buffers1[i]);
+        errNum = clSetKernelArg(kernals[i], 2, sizeof(cl_mem), (void *)&outputBuffer[i]);
         checkErr(errNum, ("clSetKernelArg(" + kernalName + ")").c_str());
      
         // Write input data
