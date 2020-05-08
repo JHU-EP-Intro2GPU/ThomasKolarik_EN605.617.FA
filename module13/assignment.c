@@ -70,7 +70,7 @@ int main(int argc, char** argv)
 		
 		std::string kernalName(argv[i]);
 		
-		std::transform(kernalName.begin(), kernalName.end(), kernalName.begin(), std::tolower);
+		std::transform(kernalName.begin(), kernalName.end(), kernalName.begin(), ::tolower);
 		
 		if (validKernals.find(kernalName) == validKernals.end())
 		{
