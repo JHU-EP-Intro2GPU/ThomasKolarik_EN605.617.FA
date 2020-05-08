@@ -9,7 +9,6 @@
 //            http://www.openclprogrammingguide.com
 //
 
-
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -18,6 +17,8 @@
 #include <vector>
 
 #include "info.hpp"
+
+#define NUM_BUFFER_ELEMENTS 16
 
 const std::unordered_set<std::string> validKernals = {
 	"add",
