@@ -26,7 +26,7 @@ const std::unordered_set<std::string> validKernals = {
 	"div",
 	"mod",
 	"avg"	
-}
+};
 
 // Function to check and handle OpenCL errors
 inline void 
