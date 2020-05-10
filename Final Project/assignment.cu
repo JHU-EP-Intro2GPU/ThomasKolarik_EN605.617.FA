@@ -47,8 +47,8 @@ void readPGM(const std::string & pgmName, unsigned int * array, unsigned int & x
     // load gray-scale image from disk
     npp::loadImage(pgmName, oHostSrc);
     
-    unsigned int xSize = oHostSrc.size().nWidth;
-    unsigned int ySize = oHostSrc.size().nHeight;
+    xSize = oHostSrc.size().nWidth;
+    ySize = oHostSrc.size().nHeight;
     
     array = (unsigned int*)calloc(xSize * ySize, sizeof(unsigned int));
     
@@ -57,7 +57,7 @@ void readPGM(const std::string & pgmName, unsigned int * array, unsigned int & x
     {
         for (int x = 0; x < xSize; ++x)
         {
-            array[y * ySize + j] = oHostSrc.data()[y * xSize + x] == WHITE_PIXEL ? DEAD : ALIVE;
+            array[y * ySize + x] = oHostSrc.data()[y * xSize + x] == WHITE_PIXEL ? DEAD : ALIVE;
         }
     }
 }
@@ -69,7 +69,6 @@ void readPGM(const std::string & pgmName, unsigned int * array, unsigned int & x
 // ySize: The ySize of the array.
 void writePGM(const std::string & pgmName, const unsigned int * array, const unsigned int xSize, const unsigned int ySize)
 {
-    
     npp::ImageCPU_8u_C1 oHostDst;
     
     oHostDst.size().setWidth(xSize);
@@ -81,7 +80,7 @@ void writePGM(const std::string & pgmName, const unsigned int * array, const uns
         for (int x = 0; x < xSize; ++x)
         {
             // PGM white pixels (256) are dead and black pixels (0) are alive.
-            oHostSrc.data()[y * xSize + x] = array[y * ySize + j] != DEAD ? BLACK_PIXEL : WHITE_PIXEL;
+            oHostDst.data()[y * xSize + x] = array[y * ySize + x] != DEAD ? BLACK_PIXEL : WHITE_PIXEL;
         }
     }
 }
@@ -237,13 +236,13 @@ void executeHost(const unsigned int * array, const unsigned int xSize, const uns
 {
     auto startTime = std::chrono::system_clock::now();
     unsigned int ** results;
-    results = calloc(iterations, sizeof(unsigned int *));
+    results = (unsigned int**)calloc(iterations, sizeof(unsigned int *));
     
     for (unsigned int iter = 0; iter < iterations; ++iter)
     {
-        results[iter] = calloc(xSize * ySize, sizeof(unsigned int));
+        results[iter] = (unsigned int*)calloc(xSize * ySize, sizeof(unsigned int));
         hostProgressTime(array, results[iter], xSize, ySize, neighborsToGrow, neighborsToDie);
-        memcpy(array, results[iter], xSize * ySize * sizeof(unsigned int *));
+        memcpy(array, &results[iter], xSize * ySize * sizeof(unsigned int *));
     }
     auto endTime = std::chrono::system_clock::now();
     std::chrono::duration<double> totalTime = endTime-startTime;
@@ -252,7 +251,7 @@ void executeHost(const unsigned int * array, const unsigned int xSize, const uns
     // Output the data as a PGM and then free up the memory.
     for (unsigned int iter = 0; iter < iterations; ++iter)
     {
-        writePGM("cpuIter" + std::to_string(iter), const unsigned int * array, const unsigned int xSize, const unsigned int ySize);
+        writePGM("cpuIter" + std::to_string(iter), array, xSize, ySize);
         free(results[iter]);
     }
     
@@ -277,15 +276,15 @@ int main(int argc, char** argv)
     const unsigned int ITER_INDEX = 3;
     const unsigned int PGM_INDEX  = 4;
 
-    unsigned int neighborsToGrow = std::stoul(argc[GROW_INDEX]);
-    unsigned int neighborsToDie = std::stoul(argc[DIE_INDEX]);
-    unsigned int iterations = std::stoul(argc[ITER_INDEX]);
+    unsigned int neighborsToGrow = std::stoul(argv[GROW_INDEX]);
+    unsigned int neighborsToDie = std::stoul(argv[DIE_INDEX]);
+    unsigned int iterations = std::stoul(argv[ITER_INDEX]);
     
-    unsigned int * array;
+    unsigned int * array = nullptr;
     unsigned int xSize = 0;
     unsigned int ySize = 0;
     
-    readPGM(argc[PGM_INDEX], array, xSize, ySize);
+    readPGM(argv[PGM_INDEX], array, xSize, ySize);
 
     executeHost(array, xSize, ySize, neighborsToGrow, neighborsToDie, iterations);
     
