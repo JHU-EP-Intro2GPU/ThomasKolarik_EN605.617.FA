@@ -194,53 +194,45 @@ void executeHost(const unsigned int * array, const unsigned int xSize, const uns
 // argv: Stores the command line arguments. The only user argument should be the file to read from.
 int main(int argc, char** argv)
 {
-    // Argc should only have a single argument which is the name of the file to read.
-    if (argc != 2)
+    // declare a host image object for an 8-bit grayscale image
+    npp::ImageCPU_8u_C1 oHostSrc;
+    // load gray-scale image from disk
+    npp::loadImage("Example.pgn", oHostSrc);
+    
+    std::cout << oHostSrc.size().nHeight() << std::endl;
+    std::cout << oHostSrc.size().nWidth() << std::endl;
+    
+    for (int i = 0; i < oHostSrc.size().nHeight(); ++i)
     {
-        std::cout << "Invalid number of arguments. Usage 'gameOfLife.exe Example.txt'." << std::endl;
-        std::cout << "This file should be in the format \nneighborsToGrow\nneighborsToDie\nxSize\nySize\n" << std::endl;
-        std::cout << "See accompanying Example.txt for details" << std::endl;
+        for (int j = 0; j < oHostSrc.size().nWidth(); ++j)
+        {
+            std::cout << oHostSrc.data()[i * oHostSrc.size().nWidth() + j] << " ";
+        }
+        std::cout << std::endl;
+    }
+    /*// Argc should only have a single argument which is the name of the file to read.
+    if (argc != 4)
+    {
+        std::cout << "Invalid number of arguments. Usage 'gameOfLife.exe # # Example.pgn' where the # are unsigned int for neighborsToGrow, and neighborsToDie respectively." << std::endl;
+        
         return -1;
     }
     
-    std::ifstream fileToRead(argv[1]);
-    
-    if (!fileToRead.good())
-    {
-        std::cout << "Unable to read file " << argv[1] << std::endl;
-        return -2;
-    }
-    
-    std::stringstream ss;
-    
-    ss << fileToRead.rdbuf();
-    
-    fileToRead.close();
+    const unsigned int GROW_INDEX = 1;
+    const unsigned int DIE_INDEX  = 2;
+    const unsigned int PGN_INDEX  = 3;
 
     unsigned int xSize = 0;
     unsigned int ySize = 0;
-    unsigned int neighborsToGrow = 0;
-    unsigned int neighborsToDie = 0;
-    
-    ss >> neighborsToGrow;
-    ss >> neighborsToDie;
-    ss >> xSize;
-    ss >> ySize;
+    unsigned int neighborsToGrow = std::stoul(argc[GROW_INDEX]);
+    unsigned int neighborsToDie = std::stoul(argc[DIE_INDEX]);
 
     unsigned int * array = (unsigned int*)calloc(xSize * ySize, sizeof(unsigned int));
-    
-    for (unsigned int y = 0; y < ySize; ++y)
-    {
-        for(unsigned int x = 0; x < xSize; ++x)
-        {
-            ss >> array[y * xSize + x];
-        }
-    }
-    
+
     executeHost(array, xSize, ySize, neighborsToGrow, neighborsToDie);
     
     
-    free(array);
+    free(array);*/
     
     return 0;
 }
