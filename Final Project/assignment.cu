@@ -199,14 +199,14 @@ int main(int argc, char** argv)
     // load gray-scale image from disk
     npp::loadImage("Example.pgn", oHostSrc);
     
-    std::cout << oHostSrc.size().nHeight() << std::endl;
-    std::cout << oHostSrc.size().nWidth() << std::endl;
+    std::cout << oHostSrc.size().nHeight << std::endl;
+    std::cout << oHostSrc.size().nWidth << std::endl;
     
-    for (int i = 0; i < oHostSrc.size().nHeight(); ++i)
+    for (int i = 0; i < oHostSrc.size().nHeight; ++i)
     {
-        for (int j = 0; j < oHostSrc.size().nWidth(); ++j)
+        for (int j = 0; j < oHostSrc.size().nWidth; ++j)
         {
-            std::cout << oHostSrc.data()[i * oHostSrc.size().nWidth() + j] << " ";
+            std::cout << oHostSrc.data()[i * oHostSrc.size().nWidth + j] << " ";
         }
         std::cout << std::endl;
     }
