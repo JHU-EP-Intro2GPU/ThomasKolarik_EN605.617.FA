@@ -77,6 +77,8 @@ void executeDevice(const unsigned int * array, const unsigned int xSize, const u
     auto startTime = std::chrono::system_clock::now();
     unsigned int * result = (unsigned int*)calloc(xSize * ySize * sizeof(unsigned int));
     
+    unsigned int * gpu_array, gpu_result;
+    
     cudaMalloc((void**)&gpu_array,  xSize * ySize * sizeof(unsigned int));
     cudaMalloc((void**)&gpu_result, xSize * ySize * sizeof(unsigned int));
     
