@@ -265,7 +265,7 @@ int main(int argc, char** argv)
     // Make sure we are inputing all of the correct arguments.
     if (argc != 5)
     {
-        std::cout << "Invalid number of arguments. Usage 'gameOfLife.exe # # # Example.pgn' where the # are unsigned int for neighborsToGrow, neighborsToDie, and the number of iterations respectively." << std::endl;
+        std::cout << "Invalid number of arguments. Usage 'gameOfLife.exe # # # Example.pgm' where the # are unsigned int for neighborsToGrow, neighborsToDie, and the number of iterations respectively." << std::endl;
         
         return -1;
     }
