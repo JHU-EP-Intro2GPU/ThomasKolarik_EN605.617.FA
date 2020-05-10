@@ -99,7 +99,7 @@ int main(int argc, char** argv)
         return -2;
     }
     
-    std::sstream ss;
+    std::stringstream ss;
     
     ss << fileToRead.rdbuf();
     
