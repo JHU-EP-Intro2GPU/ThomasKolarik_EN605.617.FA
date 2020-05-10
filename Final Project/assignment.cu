@@ -69,10 +69,7 @@ void readPGM(const std::string & pgmName, unsigned int * array, unsigned int & x
 // ySize: The ySize of the array.
 void writePGM(const std::string & pgmName, const unsigned int * array, const unsigned int xSize, const unsigned int ySize)
 {
-    npp::ImageCPU_8u_C1 oHostDst;
-    
-    oHostDst.size().nWidth = xSize;
-    oHostDst.size().nHeight = ySize;
+    npp::ImageCPU_8u_C1 oHostDst(xSize, ySize);
 
     // Put all of the image data into the given array.
     for (int y = 0; y < ySize; ++y)
@@ -83,6 +80,8 @@ void writePGM(const std::string & pgmName, const unsigned int * array, const uns
             oHostDst.data()[y * xSize + x] = array[y * ySize + x] != DEAD ? BLACK_PIXEL : WHITE_PIXEL;
         }
     }
+    
+    npp::saveImage(pgmName, oHostDst);
 }
 
 // Counts the number of alive neighbors for a given square
