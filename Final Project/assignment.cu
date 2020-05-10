@@ -75,7 +75,7 @@ __global__ void progressTime(const unsigned int * array, unsigned int * result, 
 void executeDevice(const unsigned int * array, const unsigned int xSize, const unsigned int ySize, const unsigned int neighborsToGrow, const unsigned int neighborsToDie)
 {
     auto startTime = std::chrono::system_clock::now();
-    unsigned int * result = (unsigned int*)calloc(xSize * ySize * sizeof(unsigned int));
+    unsigned int * result = (unsigned int*)calloc(xSize * ySize, sizeof(unsigned int));
     
     unsigned int * gpu_array;
     unsigned int * gpu_result;
