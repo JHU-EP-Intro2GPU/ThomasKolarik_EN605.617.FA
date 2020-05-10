@@ -5,6 +5,12 @@
 #include <chrono>
 #include <stdio.h>
 
+#include <npp.h>
+
+#include <ImagesCPU.h>
+#include <ImagesNPP.h>
+#include <ImageIO.h>
+
 // Counts the number of alive neighbors for a given square
 // array: The array with the game world stored within it
 // xSize: The size of the game world in the X direction
@@ -58,6 +64,30 @@ __global__ void progressTime(const unsigned int * array, unsigned int * result, 
     // This line wraps up all of the growing/dying mechanics of the game. In the normal game of life, neighrborsToGrow is 3
     // and neighborsToDie is 1. So the following reduces to aliveNeighbors == neighborsToGrow || (array[xCoord][yCoord] && aliveNeighbors == 2).
     result[sqIndx] = (aliveNeighbors == neighborsToGrow || (array[sqIndx] && aliveNeighbors > neighborsToDie)) && aliveNeighbors <= neighborsToGrow;
+}
+
+// Executes the device (gpu) version of the game of life algorithm.
+// array: The array with the game world stored within it
+// xSize: The size of the array in the X direction
+// ySize: The size of the array in the Y direction
+// neighborsToGrow: The number of neighbors required for a cell to grow if previously dead.
+// neighborsToDie: The number of neighbors at which the cell will die due to loneliness.
+void executeDevice(const unsigned int * array, const unsigned int xSize, const unsigned int ySize, const unsigned int neighborsToGrow, const unsigned int neighborsToDie)
+{
+    auto startTime = std::chrono::system_clock::now();
+    unsigned int * result = (unsigned int*)calloc(xSize * ySize * sizeof(unsigned int));
+    
+    cudaMalloc((void**)&gpu_array,  xSize * ySize * sizeof(unsigned int));
+    cudaMalloc((void**)&gpu_result, xSize * ySize * sizeof(unsigned int));
+    
+    cudaMemcpy(gpu_result, result, xSize * ySize * sizeof(unsigned int), cudaMemcpyHostToDevice);
+    
+    cudaFree(gpu_array);
+    cudaFree(gpu_result);
+    
+    auto endTime = std::chrono::system_clock::now();
+    std::chrono::duration<double> totalTime = endTime-startTime;
+    std::cout << "Device execution took: " << totalTime.count() << " seconds." << std::endl;
 }
 
 // Prints the given array out to the console
@@ -154,7 +184,6 @@ void executeHost(const unsigned int * array, const unsigned int xSize, const uns
     
     printArray(array, xSize, ySize);
     printArray(result, xSize, ySize);
-    
 }
 
 // Takes in a file name and parses it to setup the initial game state.
