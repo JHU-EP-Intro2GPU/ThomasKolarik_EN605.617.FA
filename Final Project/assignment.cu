@@ -128,7 +128,7 @@ void hostProgressTime(const unsigned int * array, unsigned int * result, const u
         for (unsigned int x = 0; x < xSize; ++x)
         {
             const unsigned int sqIndx = y * xSize + x;
-            unsigned int aliveNeighbors = hostCountAliveNeighbors(array, xSize, ySize, xCoord, yCoord);
+            unsigned int aliveNeighbors = hostCountAliveNeighbors(array, xSize, ySize, x, y);
             
             // This line wraps up all of the growing/dying mechanics of the game. In the normal game of life, neighrborsToGrow is 3
             // and neighborsToDie is 1. So the following reduces to aliveNeighbors == neighborsToGrow || (array[xCoord][yCoord] && aliveNeighbors == 2).
@@ -146,7 +146,7 @@ void hostProgressTime(const unsigned int * array, unsigned int * result, const u
 void executeHost(const unsigned int * array, const unsigned int xSize, const unsigned int ySize, const unsigned int neighborsToGrow, const unsigned int neighborsToDie)
 {
     auto startTime = std::chrono::system_clock::now();
-    unsigned int * result = (int*)calloc(xSize * ySize, sizeof(unsigned int));
+    unsigned int * result = (unsigned int*)calloc(xSize * ySize, sizeof(unsigned int));
     hostProgressTime(array, result, xSize, ySize, neighborsToGrow, neighborsToDie);
     auto endTime = std::chrono::system_clock::now();
     std::chrono::duration<double> totalTime = endTime-startTime;
@@ -195,7 +195,7 @@ int main(int argc, char** argv)
     ss >> xSize;
     ss >> ySize;
 
-    unsigned int * array = (int*)calloc(xSize * ySize, sizeof(unsigned int));
+    unsigned int * array = (unsigned int*)calloc(xSize * ySize, sizeof(unsigned int));
     
     for (unsigned int y = 0; y < ySize; ++y)
     {
