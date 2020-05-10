@@ -71,8 +71,8 @@ void writePGM(const std::string & pgmName, const unsigned int * array, const uns
 {
     npp::ImageCPU_8u_C1 oHostDst;
     
-    oHostDst.size().setWidth(xSize);
-    oHostDst.size().setHeight(ySize);
+    oHostDst.size().nWidth = xSize;
+    oHostDst.size().nHeight = ySize;
 
     // Put all of the image data into the given array.
     for (int y = 0; y < ySize; ++y)
@@ -232,7 +232,7 @@ void hostProgressTime(const unsigned int * array, unsigned int * result, const u
 // neighborsToGrow: The number of neighbors required for a cell to grow if previously dead.
 // neighborsToDie: The number of neighbors at which the cell will die due to loneliness.
 // iterations: The number of game iterations to run.
-void executeHost(const unsigned int * array, const unsigned int xSize, const unsigned int ySize, const unsigned int neighborsToGrow, const unsigned int neighborsToDie, const unsigned int iterations)
+void executeHost(unsigned int * array, const unsigned int xSize, const unsigned int ySize, const unsigned int neighborsToGrow, const unsigned int neighborsToDie, const unsigned int iterations)
 {
     auto startTime = std::chrono::system_clock::now();
     unsigned int ** results;
@@ -242,7 +242,7 @@ void executeHost(const unsigned int * array, const unsigned int xSize, const uns
     {
         results[iter] = (unsigned int*)calloc(xSize * ySize, sizeof(unsigned int));
         hostProgressTime(array, results[iter], xSize, ySize, neighborsToGrow, neighborsToDie);
-        memcpy(array, &results[iter], xSize * ySize * sizeof(unsigned int *));
+        memcpy(array, &results[iter][0], xSize * ySize * sizeof(unsigned int *));
     }
     auto endTime = std::chrono::system_clock::now();
     std::chrono::duration<double> totalTime = endTime-startTime;
