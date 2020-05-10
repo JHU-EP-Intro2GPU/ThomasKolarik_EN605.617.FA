@@ -47,13 +47,13 @@ __device__ unsigned int countAliveNeighbors(const unsigned int * array, const un
 // ySize: The size of the game world in the Y direction
 // neighborsToGrow: The number of neighbors required for a cell to grow if previously dead.
 // neighborsToDie: The number of neighbors at which the cell will die due to loneliness.
-__global__ void progressTime(const unsigned int * array, unsinged int * result, const int xSize, const int ySize, const int neighborsToGrow, const int neighborsToDie)
+__global__ void progressTime(const unsigned int * array, unsigned int * result, const int xSize, const int ySize, const int neighborsToGrow, const int neighborsToDie)
 {
     const unsigned int xCoord = ((blockIdx.x * blockDim.x) + threadIdx.x) % xSize;
     const unsigned int yCoord = ((blockIdx.x * blockDim.x) + threadIdx.x) / xSize;
     const int sqIndx = yCoord * xSize + xCoord;
     
-    unisnged int aliveNeighbors = countAliveNeighbors(array, xSize, ySize, xCoord, yCoord);
+    unsigned int aliveNeighbors = countAliveNeighbors(array, xSize, ySize, xCoord, yCoord);
     
     // This line wraps up all of the growing/dying mechanics of the game. In the normal game of life, neighrborsToGrow is 3
     // and neighborsToDie is 1. So the following reduces to aliveNeighbors == neighborsToGrow || (array[xCoord][yCoord] && aliveNeighbors == 2).
@@ -91,7 +91,7 @@ int main(int argc, char** argv)
         return -1;
     }
     
-    ifstream fileToRead(argv[1]);
+    std::ifstream fileToRead(argv[1]);
     
     if (!fileToRead.good())
     {
@@ -99,19 +99,20 @@ int main(int argc, char** argv)
         return -2;
     }
     
-    sstream ss;
+    std::sstream ss;
     
     ss << fileToRead.rdbuf();
     
     fileToRead.close();
     
-    unsigned int xSize = 0;
-    unsigned int ySize = 0;
     std::string str;
     while (ss >> str)
     {
         std::cout << str << std::endl;
     }
+    
+    //unsigned int xSize = 0;
+    //unsigned int ySize = 0;
     
     /*ss >> xSize;
     ss >> ySize;
