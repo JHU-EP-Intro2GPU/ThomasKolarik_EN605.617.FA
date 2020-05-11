@@ -40,7 +40,7 @@ void printArray(const unsigned int * const array, const unsigned int xSize, cons
 // array: The array to populate with data.
 // xSize: The xSize of the PGM.
 // ySize: The ySize of the PGM.
-void readPGM(const std::string & pgmName, unsigned int * array, unsigned int & xSize, unsigned int & ySize)
+void readPGM(const std::string & pgmName, unsigned int * &array, unsigned int & xSize, unsigned int & ySize)
 {
     // declare a host image object for an 8-bit grayscale image
     npp::ImageCPU_8u_C1 oHostSrc;
@@ -57,7 +57,7 @@ void readPGM(const std::string & pgmName, unsigned int * array, unsigned int & x
     {
         for (int x = 0; x < xSize; ++x)
         {
-            array[y * ySize + x] = oHostSrc.data()[y * xSize + x] == WHITE_PIXEL ? DEAD : ALIVE;
+            array[y * xSize + x] = oHostSrc.data()[y * xSize + x] == WHITE_PIXEL ? DEAD : ALIVE;
         }
     }
 }
@@ -77,7 +77,7 @@ void writePGM(const std::string & pgmName, const unsigned int * array, const uns
         for (int x = 0; x < xSize; ++x)
         {
             // PGM white pixels (256) are dead and black pixels (0) are alive.
-            oHostDst.data()[y * xSize + x] = array[y * ySize + x] != DEAD ? BLACK_PIXEL : WHITE_PIXEL;
+            oHostDst.data()[y * xSize + x] = array[y * xSize + x] != DEAD ? BLACK_PIXEL : WHITE_PIXEL;
         }
     }
     
@@ -241,7 +241,7 @@ void executeHost(unsigned int * array, const unsigned int xSize, const unsigned 
     {
         results[iter] = (unsigned int*)calloc(xSize * ySize, sizeof(unsigned int));
         hostProgressTime(array, results[iter], xSize, ySize, neighborsToGrow, neighborsToDie);
-        memcpy(array, &results[iter][0], xSize * ySize * sizeof(unsigned int *));
+        memcpy(array, &results[iter][0], xSize * ySize * sizeof(unsigned int));
     }
     auto endTime = std::chrono::system_clock::now();
     std::chrono::duration<double> totalTime = endTime-startTime;
@@ -250,7 +250,7 @@ void executeHost(unsigned int * array, const unsigned int xSize, const unsigned 
     // Output the data as a PGM and then free up the memory.
     for (unsigned int iter = 0; iter < iterations; ++iter)
     {
-        writePGM("cpuIter" + std::to_string(iter), array, xSize, ySize);
+        writePGM("cpuIter" + std::to_string(iter) +".pgm", results[iter], xSize, ySize);
         free(results[iter]);
     }
     
