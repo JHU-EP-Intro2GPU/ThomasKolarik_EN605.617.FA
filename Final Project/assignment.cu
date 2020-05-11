@@ -11,7 +11,7 @@
 #include <ImagesNPP.h>
 #include <ImageIO.h>
 
-const int WHITE_PIXEL = 256;
+const int WHITE_PIXEL = 255;
 const int BLACK_PIXEL = 0;
 const int ALIVE = 1;
 const int DEAD = 0;
@@ -145,10 +145,10 @@ __global__ void progressTime(const unsigned int * array, unsigned int * result, 
 // ySize: The size of the array in the Y direction
 // neighborsToGrow: The number of neighbors required for a cell to grow if previously dead.
 // neighborsToDie: The number of neighbors at which the cell will die due to loneliness.
-void executeDevice(const unsigned int * array, const unsigned int xSize, const unsigned int ySize, const unsigned int neighborsToGrow, const unsigned int neighborsToDie)
+void executeDevice(const unsigned int * array, const unsigned int xSize, const unsigned int ySize, const unsigned int neighborsToGrow, const unsigned int neighborsToDie, const unsigned int iterations)
 {
     auto startTime = std::chrono::system_clock::now();
-    unsigned int * result = (unsigned int*)calloc(xSize * ySize, sizeof(unsigned int));
+    unsigned int ** result = (unsigned int*)calloc(xSize * ySize, sizeof(unsigned int *));
     
     unsigned int * gpu_array;
     unsigned int * gpu_result;
@@ -156,14 +156,28 @@ void executeDevice(const unsigned int * array, const unsigned int xSize, const u
     cudaMalloc((void**)&gpu_array,  xSize * ySize * sizeof(unsigned int));
     cudaMalloc((void**)&gpu_result, xSize * ySize * sizeof(unsigned int));
     
-    cudaMemcpy(gpu_result, result, xSize * ySize * sizeof(unsigned int), cudaMemcpyHostToDevice);
-    
-    cudaFree(gpu_array);
-    cudaFree(gpu_result);
+    for (unsigned int iter = 0; iter < iterations; ++iter)
+    {
+        results[iter] = (unsigned int*)calloc(xSize * ySize, sizeof(unsigned int));
+        progressTime<<<xSize, ySize>>>(gpu_array, gpu_result, xSize, ySize, neighborsToGrow, neighborsToDie);
+        cudamemcpy(result[iter], gpu_result, xSize * ySize * sizeof(unsigned int));
+    }
     
     auto endTime = std::chrono::system_clock::now();
     std::chrono::duration<double> totalTime = endTime-startTime;
     std::cout << "Device execution took: " << totalTime.count() << " seconds." << std::endl;
+    
+    cudaFree(gpu_array);
+    cudaFree(gpu_result);
+    
+    // Output the data as a PGM and then free up the memory.
+    for (unsigned int iter = 0; iter < iterations; ++iter)
+    {
+        writePGM("gpuIter" + std::to_string(iter) +".pgm", results[iter], xSize, ySize);
+        free(results[iter]);
+    }
+    
+    free(results);
 }
 
 // Counts the number of alive neighbors for a given square
@@ -284,9 +298,12 @@ int main(int argc, char** argv)
     unsigned int ySize = 0;
     
     readPGM(argv[PGM_INDEX], array, xSize, ySize);
-
     executeHost(array, xSize, ySize, neighborsToGrow, neighborsToDie, iterations);
+    free(array);
     
+    // Reread the file to reinitialize the array data.
+    readPGM(argv[PGM_INDEX], array, xSize, ySize);
+    executeDevice(array, xSize, ySize, neighborsToGrow, neighborsToDie, iterations);
     free(array);
     
     return 0;
