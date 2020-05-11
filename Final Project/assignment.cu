@@ -148,7 +148,7 @@ __global__ void progressTime(const unsigned int * array, unsigned int * result, 
 void executeDevice(const unsigned int * array, const unsigned int xSize, const unsigned int ySize, const unsigned int neighborsToGrow, const unsigned int neighborsToDie, const unsigned int iterations)
 {
     auto startTime = std::chrono::system_clock::now();
-    unsigned int ** result = (unsigned int*)calloc(xSize * ySize, sizeof(unsigned int *));
+    unsigned int ** result = (unsigned int**)calloc(xSize * ySize, sizeof(unsigned int *));
     
     unsigned int * gpu_array;
     unsigned int * gpu_result;
@@ -160,7 +160,7 @@ void executeDevice(const unsigned int * array, const unsigned int xSize, const u
     {
         results[iter] = (unsigned int*)calloc(xSize * ySize, sizeof(unsigned int));
         progressTime<<<xSize, ySize>>>(gpu_array, gpu_result, xSize, ySize, neighborsToGrow, neighborsToDie);
-        cudamemcpy(result[iter], gpu_result, xSize * ySize * sizeof(unsigned int));
+        cudaMemcpy(result[iter], gpu_result, xSize * ySize * sizeof(unsigned int));
     }
     
     auto endTime = std::chrono::system_clock::now();
