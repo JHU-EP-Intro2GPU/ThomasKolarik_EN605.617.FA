@@ -155,12 +155,16 @@ void executeDevice(const unsigned int * array, const unsigned int xSize, const u
     
     cudaMalloc((void**)&gpu_array,  xSize * ySize * sizeof(unsigned int));
     cudaMalloc((void**)&gpu_result, xSize * ySize * sizeof(unsigned int));
+    cudaMemcpy(gpu_array, array, xSize * ySize * sizeof(unsigned int), cudaMemcpyHostToDevice);
     
     for (unsigned int iter = 0; iter < iterations; ++iter)
     {
         results[iter] = (unsigned int*)calloc(xSize * ySize, sizeof(unsigned int));
         progressTime<<<xSize, ySize>>>(gpu_array, gpu_result, xSize, ySize, neighborsToGrow, neighborsToDie);
-        cudaMemcpy(results[iter], gpu_result, xSize * ySize * sizeof(unsigned int), cudaMemcpyDeviceToHost);
+        cudaMemcpy(results[iter], gpu_result, xSize * ySize * sizeof(unsigned int), cudaMemcpyDeviceToHost);\
+        unsigned int * tmp = gpu_array;
+        gpu_array = gpu_results;
+        gpu_results = tmp;
     }
     
     auto endTime = std::chrono::system_clock::now();
